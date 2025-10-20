@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Service Report</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; background: #f6f7fb; color: #0f172a; }
+    .brand-header { background: #000; color: #fff; padding: 20px 24px; text-align: left; margin: 0; }
+    .brand-header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 1px; }
+    .container { max-width: 860px; margin: 24px auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    fieldset { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    legend { padding: 0 8px; color: #334155; font-weight: 600; }
+    label { display: block; font-size: 13px; color: #334155; margin-top: 12px; }
+    input[type="text"], input[type="date"], input[type="time"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #fff; }
+    input:disabled, select:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    button { appearance: none; border: 0; background: #2563eb; color: #fff; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    canvas { width: 100%; height: 160px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; touch-action: none; }
+    small.muted { color: #64748b; }
+    .toast { margin-top: 10px; font-weight: 600; }
+    .hidden { display: none; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #475569; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-name { font-weight: 600; color: #0f172a; }
+    .logout-btn { background: #ef4444; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 0; font-weight: 600; }
+    /* Logout confirmation modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-overlay.hidden { display: none; }
+    .modal-dialog { background: #fff; width: 90%; max-width: 360px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,.15); text-align: center; }
+    .modal-dialog p { margin: 0 0 12px; color: #0f172a; font-weight: 600; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+    .modal-actions .yes-btn { background: #ef4444; color: #fff; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .modal-actions .no-btn { background: #e2e8f0; color: #0f172a; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+  </style>
+  <script src="auth.js"></script>
+  <script>
+    // DSR Application - No hard auth gate; allow access
+    window._logoutBtnRef = null;
+    window.openLogoutConfirm = function (event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { window._logoutBtnRef = btn || null; } catch (_) { window._logoutBtnRef = null; }
+      const overlay = document.getElementById('logoutOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+    };
+    window.cancelLogout = function () {
+      const overlay = document.getElementById('logoutOverlay');
+      if (overlay) overlay.classList.add('hidden');
+    };
+    window.confirmLogout = function () {
+      const overlay = document.getElementById('logoutOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      // Proceed with actual logout
+      try { window.logout(null, window._logoutBtnRef); } catch (_) { window.location.href = 'login.html'; }
+    };
+    window.logout = async function (event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; } } catch (_) {}
+      try {
+        // Best-effort server logout with timeout; always clear client state
+        const doLogout = (async () => {
+          if (window.DSRAuth && typeof window.DSRAuth.logout === 'function') {
+            await window.DSRAuth.logout();
+          }
+        })();
+        const timeout = new Promise((resolve) => setTimeout(resolve, 1500));
+        await Promise.race([doLogout, timeout]);
+      } catch (_) {}
+      try { localStorage.removeItem('dsr_session'); } catch (_) {}
+      try { localStorage.removeItem('dsr_jwt_token'); } catch (_) {}
+      try { sessionStorage.removeItem('dsr_redirect_to'); } catch (_) {}
+      // Prevent back button from returning to protected page
+      try { window.location.replace('/login.html'); } catch (_) { window.location.href = '/login.html'; }
+    };
+  </script>
+  <script>
+    // Simple pen for signature pads
+    function createSignaturePad(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const context = canvas.getContext('2d');
+      let drawing = false;
+      let lastX = 0, lastY = 0;
+
+      function getPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      function start(evt) { drawing = true; const p = getPos(evt); lastX = p.x; lastY = p.y; }
+      function end() { drawing = false; }
+      function move(evt) {
+        if (!drawing) return;
+        const p = getPos(evt);
+        context.lineWidth = 2;
+        context.lineCap = 'round';
+        context.strokeStyle = '#111827';
+        context.beginPath();
+        context.moveTo(lastX, lastY);
+        context.lineTo(p.x, p.y);
+        context.stroke();
+        lastX = p.x; lastY = p.y;
+      }
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
+      window.addEventListener('touchend', end);
+
+      return {
+        clear() { context.clearRect(0, 0, canvas.width, canvas.height); },
+        toDataURL() { return canvas.toDataURL('image/jpeg', 0.6); }
+      };
+    }
+
+    let API_BASE = '';
+    let HEALTH_PATH = '/health';
+    let SUBMIT_PATH = '/submit_report';
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+    function getStoredConfig() {
+      try { const j = localStorage.getItem('dsr_api_config'); return j ? JSON.parse(j) : null; } catch (e) { return null; }
+    }
+    function setStoredConfig(cfg) {
+      try { localStorage.setItem('dsr_api_config', JSON.stringify(cfg)); } catch (e) {}
+    }
+    function getStoredApi() {
+      const cfg = getStoredConfig();
+      if (cfg && typeof cfg.base === 'string') return cfg.base;
+      try { return localStorage.getItem('dsr_api_base') || ''; } catch (e) { return ''; }
+    }
+    function setStoredApi(url) {
+      const cfg = getStoredConfig() || {};
+      cfg.base = url;
+      setStoredConfig(cfg);
+      try { if (url) localStorage.setItem('dsr_api_base', url); } catch (e) {}
+    }
+    async function isHealthy(base, healthPath) {
+      try {
+        const r = await fetch(base + (healthPath || '/health'), { cache: 'no-store' });
+        return r.ok;
+      } catch (_) { return false; }
+    }
+    async function resolveApiBase() {
+      const qp = getQueryParam('api');
+      const qpHealth = getQueryParam('health');
+      const qpSubmit = getQueryParam('submit');
+      const stored = getStoredConfig();
+      const fromStore = getStoredApi();
+      const isHttpLike = (location.protocol === 'http:' || location.protocol === 'https:');
+      let candidate = qp || fromStore || (isHttpLike ? '' : 'http://127.0.0.1:5000');
+      HEALTH_PATH = qpHealth || (stored && stored.healthPath) || '/health';
+      SUBMIT_PATH = qpSubmit || (stored && stored.submitPath) || '/submit_report';
+      if (qp || qpHealth || qpSubmit) {
+        setStoredConfig({ base: candidate, healthPath: HEALTH_PATH, submitPath: SUBMIT_PATH });
+      }
+      if (await isHealthy(candidate, HEALTH_PATH)) { API_BASE = candidate; return API_BASE; }
+      // Fallback to localhost backend
+      if (candidate !== 'http://127.0.0.1:5000') {
+        if (await isHealthy('http://127.0.0.1:5000', HEALTH_PATH)) { API_BASE = 'http://127.0.0.1:5000'; return API_BASE; }
+      }
+      API_BASE = candidate; // last attempt; may still fail later but preserves intent
+      return API_BASE;
+    }
+    async function updateApiStatusUI() {
+      const el = document.getElementById('apiStatus');
+      const dot = document.getElementById('apiDot');
+      if (!el || !dot) return;
+      const base = API_BASE || '';
+      const healthy = await isHealthy(base, HEALTH_PATH);
+      el.textContent = base ? (base || location.origin) : 'same-origin';
+      dot.style.background = healthy ? '#16a34a' : '#dc2626';
+      dot.title = healthy ? 'Backend reachable' : 'Backend not reachable';
+    }
+    // If opened from file://, try redirecting to the running backend to avoid CORS issues
+    if (location.protocol === 'file:') {
+      fetch('http://127.0.0.1:5000/health')
+        .then((r) => { if (r.ok) location.replace('http://127.0.0.1:5000/'); })
+        .catch(() => {});
+    }
+
+    async function submitForm(event) {
+      event.preventDefault();
+      const toast = document.getElementById('toast');
+      if (!toast) {
+        console.error('Toast element not found');
+        return;
+      }
+      toast.textContent = '';
+
+      // Check if signature pads exist
+      if (!window.engineerPad || !window.customerPad) {
+        toast.style.color = '#b91c1c';
+        toast.textContent = 'Error: Signature pads not initialized';
+        return;
+      }
+
+      // Get form values with null checks
+      const getFieldValue = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+      };
+
+      // Get project code from either dropdown or custom input
+      const projectCodeSelectEl = document.getElementById('projectCode');
+      const projectCodeCustomEl = document.getElementById('projectCodeCustom');
+      let projectCodeValue = '';
+      if (projectCodeCustomEl && projectCodeCustomEl.style.display !== 'none' && projectCodeCustomEl.value) {
+        projectCodeValue = projectCodeCustomEl.value;
+      } else {
+        projectCodeValue = getFieldValue('projectCode');
+      }
+
+      const payload = {
+        reportDate: getFieldValue('reportDate'),
+        engineerName: getFieldValue('engineerName'),
+        projectName: getFieldValue('projectName'),
+        projectCode: projectCodeValue,
+        travelTimeToSite: getFieldValue('travelTimeToSite'),
+        travelTimeFromSite: getFieldValue('travelTimeFromSite'),
+        onSiteTimeIn: getFieldValue('onSiteTimeIn'),
+        onSiteTimeOut: getFieldValue('onSiteTimeOut'),
+        workObjective: getFieldValue('workObjective'),
+        description: getFieldValue('description'),
+        outcome: getFieldValue('outcome'),
+        engineerSignature: window.engineerPad.toDataURL(),
+        customerSignature: window.customerPad.toDataURL(),
+      };
+
+      try {
+        // Ensure we have a reachable API base
+        await resolveApiBase();
+        
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+        
+        // Include JWT token if available (optional)
+        const token = (window.DSRAuth && typeof window.DSRAuth.getToken === 'function' && window.DSRAuth.getToken()) || localStorage.getItem('dsr_jwt_token');
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+        }
+        console.log('Submitting report to:', API_BASE + SUBMIT_PATH);
+        console.log('Headers:', { ...headers, 'Authorization': token ? 'Bearer [REDACTED]' : 'None' });
+        
+        let res;
+        try {
+          res = await fetch(API_BASE + SUBMIT_PATH, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+          });
+        } catch (fetchError) {
+          console.error('Network error:', fetchError);
+          throw new Error('Cannot connect to backend. Please make sure the server is running at ' + API_BASE);
+        }
+        
+        console.log('Response status:', res.status);
+        const isJson = (res.headers.get('content-type') || '').includes('application/json');
+        const data = isJson ? await res.json() : { ok: false, error: (await res.text()) };
+        console.log('Response data:', data);
+        
+        if (!res.ok || !(data.ok || data.status === 'ok')) {
+          const errorMsg = data.error || ('HTTP ' + res.status);
+          console.error('Submission failed:', errorMsg);
+          throw new Error(errorMsg);
+        }
+        toast.style.color = '#065f46';
+        toast.textContent = 'Submitted successfully';
+        const form = document.getElementById('dsrForm');
+        if (form && typeof form.reset === 'function') {
+          form.reset();
+        }
+        if (window.engineerPad && typeof window.engineerPad.clear === 'function') {
+          window.engineerPad.clear();
+        }
+        if (window.customerPad && typeof window.customerPad.clear === 'function') {
+          window.customerPad.clear();
+        }
+      } catch (err) {
+        console.error('Submit error:', err);
+        toast.style.color = '#b91c1c';
+        const errorMessage = (err && err.message ? err.message : String(err));
+        toast.textContent = 'Error: ' + errorMessage;
+        
+        // If auth error, suggest relogin
+        if (errorMessage.includes('Authentication') || errorMessage.includes('login')) {
+          setTimeout(() => {
+            if (confirm('Authentication required. Would you like to go to the login page?')) {
+              window.location.href = 'login.html';
+            }
+          }, 1000);
+        }
+      } finally {
+        // Re-enable submit button if it was disabled
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
+      }
+    }
+
+    
+
+    // Map engineer codes to their names
+    const codeToEngineerName = {
+      'EN001': 'Reherns',
+      'EN002': 'Sam',
+      'EN003': 'Ramil',
+      'EN004': 'Vin',
+      'EN005': 'Renz',
+      'EN006': 'Brent',
+      'EN007': 'Anwil',
+      'EN008': 'Issa',
+      'EN009': 'Ana'
+    };
+
+    // Map project codes to project info
+    const projectCodeInfo = {
+      'PC230301': {
+        projectName: 'Digitally Intelligent Facility Systems, Inc. Oro Cement Hammer Mill Automation',
+        clientName: 'Digitally Intelligent Facility Systems, Inc.',
+        plantLocation: 'Oro Cement'
+      },
+      'PC230302': {
+        projectName: 'CMR Philippines Inc. YHSC QMS Workstation Restoration',
+        clientName: 'CMR Philippines Inc.',
+        plantLocation: 'Cambodia'
+      },
+      'PC230303': {
+        projectName: 'CMR Philippines Inc. PowerChina SAS Consultancy Support',
+        clientName: 'CMR Philippines Inc.',
+        plantLocation: 'Cagayan'
+      },
+      'PC230304': {
+        projectName: 'CMR Philippines Inc. YHSC PCS7 Support',
+        clientName: 'CMR Philippines Inc.',
+        plantLocation: 'Cambodia'
+      },
+      'PC230305': {
+        projectName: 'CMR Philippines Inc. Gissmatic',
+        clientName: 'CMR Philippines Inc.',
+        plantLocation: 'Saudi Arabia'
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Auth gate: require valid JWT; otherwise send to login with return
+      try {
+        const hasAuth = (window.DSRAuth && typeof window.DSRAuth.isLoggedIn === 'function' && window.DSRAuth.isLoggedIn());
+        if (!hasAuth) {
+          if (window.DSRAuth && typeof window.DSRAuth.redirectWithReturn === 'function') {
+            window.DSRAuth.redirectWithReturn('login.html');
+          } else {
+            const target = window.location.pathname + window.location.search + window.location.hash;
+            window.location.replace('login.html?redirect=' + encodeURIComponent(target));
+          }
+          return;
+        }
+      } catch (e) {
+        window.location.replace('login.html');
+        return;
+      }
+      // Load and display current user info
+      try {
+        const session = localStorage.getItem('dsr_session');
+        if (session) {
+          const data = JSON.parse(session);
+          const userNameEl = document.getElementById('currentUserName');
+          if (userNameEl && data.engineerName && data.engineerCode) {
+            userNameEl.textContent = data.engineerName + ' (' + data.engineerCode + ')';
+          }
+          
+          // Pre-fill engineer fields
+          const engineerNumberInput = document.getElementById('engineerNumber');
+          const engineerNameInput = document.getElementById('engineerName');
+          if (engineerNumberInput && engineerNameInput && data.engineerCode && data.engineerName) {
+            engineerNumberInput.value = data.engineerCode;
+            engineerNameInput.value = data.engineerName;
+          }
+        }
+      } catch (e) {
+        console.error('Error loading user session:', e);
+        // Don't redirect, just log the error
+      }
+
+      // Fix canvas size to device pixels
+      function resizeCanvas(canvas) {
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.floor(rect.width * ratio);
+        canvas.height = Math.floor(rect.height * ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(ratio, ratio);
+      }
+      // Initialize signature pads with error handling
+      try {
+        const engineerCanvas = document.getElementById('engineerSignature');
+        const customerCanvas = document.getElementById('customerSignature');
+        
+        if (engineerCanvas && customerCanvas) {
+          window.engineerPad = createSignaturePad('engineerSignature');
+          window.customerPad = createSignaturePad('customerSignature');
+          resizeCanvas(engineerCanvas);
+          resizeCanvas(customerCanvas);
+        } else {
+          console.error('Signature canvas elements not found');
+        }
+      } catch (e) {
+        console.error('Failed to initialize signature pads:', e);
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+
+      // Remove any duplicate UI containers beyond the first (defensive cleanup)
+      function removeDuplicateContainers() {
+        const containers = document.querySelectorAll('.container');
+        containers.forEach((el, idx) => { if (idx > 0) el.remove(); });
+      }
+      removeDuplicateContainers();
+      // Watch for late injections and clean them up
+      const observer = new MutationObserver(() => removeDuplicateContainers());
+      observer.observe(document.body, { childList: true, subtree: true });
+      // Logout functionality removed
+      const changeApiBtn = document.getElementById('changeApiBtn');
+      if (changeApiBtn) {
+        changeApiBtn.addEventListener('click', async function () {
+          const storedCfg = getStoredConfig() || {};
+          const currentBase = getStoredApi() || API_BASE || '';
+          const base = prompt('Enter backend base URL (e.g., http://127.0.0.1:5000) or leave empty for same-origin:', currentBase);
+          if (base === null) return;
+          const health = prompt('Enter health path (default /health):', storedCfg.healthPath || HEALTH_PATH || '/health');
+          if (health === null) return;
+          const submit = prompt('Enter submit path (default /submit_report):', storedCfg.submitPath || SUBMIT_PATH || '/submit_report');
+          if (submit === null) return;
+          const cfg = { base: String(base).trim(), healthPath: String(health).trim() || '/health', submitPath: String(submit).trim() || '/submit_report' };
+          setStoredConfig(cfg);
+          await resolveApiBase();
+          updateApiStatusUI();
+        });
+      }
+      resolveApiBase().then(updateApiStatusUI);
+
+      // Engineer number is now a text input - no auto-fill functionality needed
+
+      // Auto-fill project fields when project code is chosen
+      const projectCodeSelect = document.getElementById('projectCode');
+      const projectCodeCustom = document.getElementById('projectCodeCustom');
+      const projectNameInput = document.getElementById('projectName');
+      const clientNameInput = document.getElementById('clientName');
+      const plantLocationInput = document.getElementById('plantLocation');
+
+      function setProjectFieldsFromCode() {
+        if (!projectCodeSelect || !projectNameInput || !clientNameInput || !plantLocationInput) return;
+        const code = (projectCodeSelect.value || '').trim();
+        
+        if (code === 'None') {
+          // When "None" is selected, show custom input and clear fields
+          if (projectCodeCustom) {
+            projectCodeSelect.style.display = 'none';
+            projectCodeSelect.removeAttribute('required');
+            projectCodeCustom.style.display = 'block';
+            projectCodeCustom.setAttribute('required', 'required');
+            projectCodeCustom.focus();
+          }
+          projectNameInput.value = '';
+          clientNameInput.value = '';
+          plantLocationInput.value = '';
+        } else if (code) {
+          // Hide custom input if shown
+          if (projectCodeCustom) {
+            projectCodeSelect.style.display = 'block';
+            projectCodeSelect.setAttribute('required', 'required');
+            projectCodeCustom.style.display = 'none';
+            projectCodeCustom.removeAttribute('required');
+          }
+          // Populate with project data (users can edit after population)
+          const info = projectCodeInfo[code];
+          if (info) {
+            projectNameInput.value = info.projectName || '';
+            clientNameInput.value = info.clientName || '';
+            plantLocationInput.value = info.plantLocation || '';
+          }
+        }
+      }
+
+      // Allow switching back to dropdown from custom input
+      if (projectCodeCustom) {
+        projectCodeCustom.addEventListener('blur', function() {
+          if (!this.value.trim()) {
+            projectCodeSelect.style.display = 'block';
+            projectCodeSelect.setAttribute('required', 'required');
+            projectCodeSelect.value = '';
+            this.style.display = 'none';
+            this.removeAttribute('required');
+          }
+        });
+      }
+
+      if (projectCodeSelect && projectNameInput && clientNameInput && plantLocationInput) {
+        projectCodeSelect.addEventListener('change', setProjectFieldsFromCode);
+        setProjectFieldsFromCode();
+      }
+
+      // Toggle dropdowns when Project Phase is "Site Inspection"
+      const projectPhaseSelect = document.getElementById('projectPhase');
+      const projectNameSelect = document.getElementById('projectNameSelect');
+      const clientNameSelect = document.getElementById('clientNameSelect');
+      const plantLocationSelect = document.getElementById('plantLocationSelect');
+
+      function unique(values) {
+        const seen = new Set();
+        const out = [];
+        for (const v of values) {
+          const s = String(v || '').trim();
+          if (s && !seen.has(s)) { seen.add(s); out.push(s); }
+        }
+        return out;
+      }
+
+      const allProjectNames = unique(Object.values(projectCodeInfo).map(v => v.projectName));
+      const allClientNames = unique(Object.values(projectCodeInfo).map(v => v.clientName));
+      const allPlantLocations = unique(Object.values(projectCodeInfo).map(v => v.plantLocation));
+
+      function populateSelect(selectEl, placeholder, values) {
+        if (!selectEl) return;
+        while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.disabled = true;
+        ph.selected = true;
+        ph.textContent = placeholder;
+        selectEl.appendChild(ph);
+        for (const val of values) {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          selectEl.appendChild(opt);
+        }
+      }
+
+      function syncSelectToInput(selectEl, inputEl) {
+        if (!selectEl || !inputEl) return;
+        inputEl.value = selectEl.value;
+      }
+
+      function setVisible(el, visible) {
+        if (!el) return;
+        el.style.display = visible ? 'block' : 'none';
+      }
+
+      function selectByInfoKey(key, value) {
+        const entries = Object.entries(projectCodeInfo);
+        for (const [code, info] of entries) {
+          if (String(info[key] || '').trim() === String(value || '').trim()) {
+            if (projectCodeSelect) projectCodeSelect.value = code;
+            if (projectNameInput) projectNameInput.value = info.projectName || '';
+            if (clientNameInput) clientNameInput.value = info.clientName || '';
+            if (plantLocationInput) plantLocationInput.value = info.plantLocation || '';
+            if (projectNameSelect) projectNameSelect.value = info.projectName || '';
+            if (clientNameSelect) clientNameSelect.value = info.clientName || '';
+            if (plantLocationSelect) plantLocationSelect.value = info.plantLocation || '';
+            return;
+          }
+        }
+      }
+
+      function handleProjectPhaseChange() {
+        if (!projectPhaseSelect) return;
+        const phaseValue = String(projectPhaseSelect.value).trim().toLowerCase();
+        const isSiteInspection = phaseValue === 'site inspection';
+        const isNone = phaseValue === 'none';
+
+        // Toggle visibility for Site Inspection dropdowns
+        setVisible(projectNameSelect, isSiteInspection);
+        setVisible(clientNameSelect, isSiteInspection);
+        setVisible(plantLocationSelect, isSiteInspection);
+        setVisible(projectNameInput, !isSiteInspection);
+        setVisible(clientNameInput, !isSiteInspection);
+        setVisible(plantLocationInput, !isSiteInspection);
+
+        // Also show project code as dropdown for Site Inspection
+        if (projectCodeSelect && projectCodeCustom) {
+          setVisible(projectCodeSelect, true);  // Always show dropdown
+          setVisible(projectCodeCustom, false); // Hide custom input
+        }
+
+        if (isNone) {
+          // Clear all project-related fields when None is selected
+          if (projectCodeSelect) projectCodeSelect.value = '';
+          if (projectNameInput) projectNameInput.value = '';
+          if (clientNameInput) clientNameInput.value = '';
+          if (plantLocationInput) plantLocationInput.value = '';
+          if (projectCodeCustom) projectCodeCustom.value = '';
+          if (projectNameSelect) projectNameSelect.value = '';
+          if (clientNameSelect) clientNameSelect.value = '';
+          if (plantLocationSelect) plantLocationSelect.value = '';
+        } else if (isSiteInspection) {
+          // Populate dropdowns for Site Inspection
+          populateSelect(projectNameSelect, 'Select Project Name', allProjectNames);
+          populateSelect(clientNameSelect, 'Select Client Name', allClientNames);
+          populateSelect(plantLocationSelect, 'Select Plant Location', allPlantLocations);
+          // Preserve current values if they exist
+          if (projectNameInput && projectNameInput.value) projectNameSelect.value = projectNameInput.value;
+          if (clientNameInput && clientNameInput.value) clientNameSelect.value = clientNameInput.value;
+          if (plantLocationInput && plantLocationInput.value) plantLocationSelect.value = plantLocationInput.value;
+        }
+      }
+
+      // Independent dropdown handlers - only sync to hidden input, no cross-filling
+      if (projectNameSelect) {
+        projectNameSelect.addEventListener('change', () => {
+          syncSelectToInput(projectNameSelect, projectNameInput);
+          // Removed: selectByInfoKey call - no auto-filling other fields
+        });
+      }
+      if (clientNameSelect) {
+        clientNameSelect.addEventListener('change', () => {
+          syncSelectToInput(clientNameSelect, clientNameInput);
+          // Removed: selectByInfoKey call - no auto-filling other fields
+        });
+      }
+      if (plantLocationSelect) {
+        plantLocationSelect.addEventListener('change', () => {
+          syncSelectToInput(plantLocationSelect, plantLocationInput);
+          // Removed: selectByInfoKey call - no auto-filling other fields
+        });
+      }
+
+      if (projectCodeSelect) {
+        projectCodeSelect.addEventListener('change', function () {
+          const code = (projectCodeSelect.value || '').trim();
+          // Only auto-fill when NOT in Site Inspection mode
+          const isSiteInspection = projectPhaseSelect && String(projectPhaseSelect.value).trim().toLowerCase() === 'site inspection';
+          if (!isSiteInspection) {
+            const info = projectCodeInfo[code];
+            if (info) {
+              if (projectNameInput) projectNameInput.value = info.projectName || '';
+              if (clientNameInput) clientNameInput.value = info.clientName || '';
+              if (plantLocationInput) plantLocationInput.value = info.plantLocation || '';
+            }
+          }
+          // In Site Inspection mode, dropdowns remain independent
+        });
+      }
+
+      if (projectPhaseSelect) {
+        projectPhaseSelect.addEventListener('change', handleProjectPhaseChange);
+        handleProjectPhaseChange();
+      }
+
+      // Compute durations HH:MM (handles overnight)
+      const timeInInput = document.getElementById('onSiteTimeIn');
+      const timeOutInput = document.getElementById('onSiteTimeOut');
+      const durationOutput = document.getElementById('onSiteDuration');
+      const travelStartInput = document.getElementById('travelTimeToSite');
+      const travelEndInput = document.getElementById('travelTimeFromSite');
+      const travelDurationOutput = document.getElementById('travelDuration');
+
+      function toMinutes(hhmm) {
+        const [h, m] = String(hhmm || '').split(':').map(Number);
+        if (Number.isNaN(h) || Number.isNaN(m)) return null;
+        return h * 60 + m;
+      }
+
+      function formatMinutes(total) {
+        const h = Math.floor(total / 60);
+        const m = total % 60;
+        const hLabel = h === 1 ? 'hour' : 'hours';
+        const mLabel = m === 1 ? 'minute' : 'minutes';
+        return String(h) + ' ' + hLabel + ' ' + String(m).padStart(2, '0') + ' ' + mLabel;
+      }
+
+      function updateDuration() {
+        try {
+          if (!timeInInput || !timeOutInput || !durationOutput) return;
+          const minIn = toMinutes(timeInInput.value);
+          const minOut = toMinutes(timeOutInput.value);
+          if (minIn == null || minOut == null) {
+            durationOutput.value = '';
+            return;
+          }
+          let diff = minOut - minIn;
+          if (diff < 0) diff += 24 * 60; // overnight wrap
+          durationOutput.value = formatMinutes(diff);
+        } catch (e) {
+          console.error('Error calculating duration:', e);
+        }
+      }
+
+      if (timeInInput && timeOutInput && durationOutput) {
+        timeInInput.addEventListener('change', updateDuration);
+        timeOutInput.addEventListener('change', updateDuration);
+      }
+
+      function updateTravelDuration() {
+        try {
+          console.log('updateTravelDuration called');
+          if (!travelStartInput || !travelEndInput || !travelDurationOutput) {
+            console.log('Missing elements in updateTravelDuration');
+            return;
+          }
+          const minStart = toMinutes(travelStartInput.value);
+          const minEnd = toMinutes(travelEndInput.value);
+          console.log('Travel times:', {
+            start: travelStartInput.value,
+            end: travelEndInput.value,
+            minStart,
+            minEnd
+          });
+          if (minStart == null || minEnd == null) {
+            travelDurationOutput.value = '';
+            return;
+          }
+          let diff = minEnd - minStart;
+          if (diff < 0) diff += 24 * 60;
+          const formatted = formatMinutes(diff);
+          console.log('Calculated duration:', { diff, formatted });
+          travelDurationOutput.value = formatted;
+        } catch (e) {
+          console.error('Error calculating travel duration:', e);
+        }
+      }
+
+      if (travelStartInput && travelEndInput && travelDurationOutput) {
+        travelStartInput.addEventListener('change', updateTravelDuration);
+        travelEndInput.addEventListener('change', updateTravelDuration);
+        travelStartInput.addEventListener('input', updateTravelDuration);
+        travelEndInput.addEventListener('input', updateTravelDuration);
+        console.log('Travel duration event listeners added');
+      } else {
+        console.log('Travel duration elements not found:', {
+          travelStartInput: !!travelStartInput,
+          travelEndInput: !!travelEndInput,
+          travelDurationOutput: !!travelDurationOutput
+        });
+      }
+
+      // Home travel duration calculation
+      const homeTravelStartInput = document.getElementById('homeTravelStart');
+      const homeTravelEndInput = document.getElementById('homeTravelEnd');
+      const homeTravelDurationOutput = document.getElementById('homeTravelDuration');
+
+      function updateHomeTravelDuration() {
+        try {
+          console.log('updateHomeTravelDuration called');
+          if (!homeTravelStartInput || !homeTravelEndInput || !homeTravelDurationOutput) {
+            console.log('Missing elements in updateHomeTravelDuration');
+            return;
+          }
+          const minStart = toMinutes(homeTravelStartInput.value);
+          const minEnd = toMinutes(homeTravelEndInput.value);
+          console.log('Home travel times:', {
+            start: homeTravelStartInput.value,
+            end: homeTravelEndInput.value,
+            minStart,
+            minEnd
+          });
+          if (minStart == null || minEnd == null) {
+            homeTravelDurationOutput.value = '';
+            return;
+          }
+          let diff = minEnd - minStart;
+          if (diff < 0) diff += 24 * 60;
+          const formatted = formatMinutes(diff);
+          console.log('Calculated home travel duration:', { diff, formatted });
+          homeTravelDurationOutput.value = formatted;
+        } catch (e) {
+          console.error('Error calculating home travel duration:', e);
+        }
+      }
+
+      if (homeTravelStartInput && homeTravelEndInput && homeTravelDurationOutput) {
+        homeTravelStartInput.addEventListener('change', updateHomeTravelDuration);
+        homeTravelEndInput.addEventListener('change', updateHomeTravelDuration);
+        homeTravelStartInput.addEventListener('input', updateHomeTravelDuration);
+        homeTravelEndInput.addEventListener('input', updateHomeTravelDuration);
+        console.log('Home travel duration event listeners added');
+      } else {
+        console.log('Home travel duration elements not found:', {
+          homeTravelStartInput: !!homeTravelStartInput,
+          homeTravelEndInput: !!homeTravelEndInput,
+          homeTravelDurationOutput: !!homeTravelDurationOutput
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="brand-header">
+    <h1>dot[X]solutions</h1>
+  </div>
+  <div class="container">
+    <div class="topbar">
+      <h1>Daily Service Report</h1>
+      <div class="meta">
+        <div class="user-info">
+          <span class="user-name" id="currentUserName">Loading...</span>
+          <button type="button" class="logout-btn" onclick="openLogoutConfirm(event, this)">Logout</button>
+        </div>
+      </div>
+    </div>
+
+
+    <div>
+    <form id="dsrForm" onsubmit="submitForm(event)">
+      <fieldset>
+        <legend>General</legend>
+        <div class="row">
+          <div>
+            <label for="reportDate">Report date</label>
+            <input type="date" id="reportDate" required>
+          </div>
+          <div>
+            <label for="projectPhase">Project Phase</label>
+            <select id="projectPhase" required>
+            <option value="" disabled selected>Select Project Phase</option>
+            <option>None</option>
+            <option>Site Inspection</option>
+            <option>Initiation</option>
+            <option>Planning</option>
+            <option>Execution</option>
+            <option>Monitoring</option>
+            <option>Closure</option>
+            </select> 
+          </div>
+        </div>
+        <div class="row">
+          <div> 
+            <label for="engineerNumber">Engineer Number</label>
+            <input type="text" id="engineerNumber" placeholder="Enter Engineer Number" readonly>
+          </div>
+        <div>
+          <label for="engineerName">Engineer Name</label>
+            <input type="text" id="engineerName" placeholder="Engineer Name" readonly>
+          </div>
+        </div>
+         <div class="row">
+         <div>
+            <label for="projectCode">Project Code</label>
+            <select id="projectCode" required>
+            <option value="" disabled selected>Select Project Code</option>
+            <option value="None">None</option>
+            <option>PC230301</option>
+            <option>PC230302</option>
+            <option>PC230303</option>
+            <option>PC230304</option>
+            <option>PC230305</option>
+            </select>
+            <input type="text" id="projectCodeCustom" placeholder="Enter custom project code" style="display: none; margin-top: 8px;">
+          </div>
+          <div>
+            <label for="projectName">Project Name</label>
+            <input type="text" id="projectName" placeholder="Project Name">
+            <select id="projectNameSelect" style="display: none; margin-top: 8px;"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="clientName">Client Name</label>
+            <input type="text" id="clientName" placeholder="Client Name">
+            <select id="clientNameSelect" style="display: none; margin-top: 8px;"></select>
+          </div>
+          <div>
+            <label for="plantLocation">Plant Location</label>
+            <input type="text" id="plantLocation" placeholder="Plant Location">
+            <select id="plantLocationSelect" style="display: none; margin-top: 8px;"></select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Travel Time to Plant Site</legend>
+        <div class="row">
+          <div>
+            <label for="travelTimeToSite">Start Time</label>
+            <input type="time" id="travelTimeToSite" required>
+          </div>
+          <div>
+            <label for="travelTimeFromSite">End Time</label>
+            <input type="time" id="travelTimeFromSite" required>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="travelDuration">Duration</label>
+            <input type="text" id="travelDuration" placeholder="0 hours 00 minutes" readonly>
+          </div>
+          <div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>On-Site</legend>
+        <div class="row">
+          <div>
+            <label for="onSiteTimeIn">Start Time</label>
+            <input type="time" id="onSiteTimeIn" required>
+          </div>
+          <div>
+            <label for="onSiteTimeOut">End Time</label>
+            <input type="time" id="onSiteTimeOut" required>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="onSiteDuration">Duration</label>
+            <input type="text" id="onSiteDuration" placeholder="0 hours 00 minutes" readonly>
+          </div>
+          <div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Travel Time to Home Base</legend>
+        <div class="row">
+          <div>
+            <label for="homeTravelStart">Start Time</label>
+            <input type="time" id="homeTravelStart" required>
+          </div>
+          <div>
+            <label for="homeTravelEnd">End Time</label>
+            <input type="time" id="homeTravelEnd" required>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="homeTravelDuration">Duration</label>
+            <input type="text" id="homeTravelDuration" placeholder="0 hours 00 minutes" readonly>
+          </div>
+          <div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Details</legend>
+        <label for="workObjective">Work objective</label>
+        <textarea id="workObjective" required></textarea>
+        <label for="description">Description</label>
+        <textarea id="description" required></textarea>
+        <label for="outcome">Outcome</label>
+        <textarea id="outcome" required></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Signatures</legend>
+        <label>Engineer signature</label>
+        <canvas id="engineerSignature"></canvas>
+        <div class="actions">
+          <button type="button" class="secondary" onclick="engineerPad.clear()">Clear</button>
+        </div>
+
+        
+      <label>Customer signature</label>
+        <canvas id="customerSignature"></canvas>
+        <div class="actions">
+          <button type="button" class="secondary" onclick="customerPad.clear()">Clear</button>
+        </div>  
+      </fieldset> 
+      <div class="actions">
+        <button type="submit">Submit report</button>
+      </div>
+      <div id="toast" class="toast"></div>
+      </form>
+    </div>
+
+    
+  </div>
+  <!-- Logout confirmation modal -->
+  <div id="logoutOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+    <div class="modal-dialog">
+      <p id="logoutTitle">Are you sure you want to logout?</p>
+      <div class="modal-actions">
+        <button type="button" class="yes-btn" onclick="confirmLogout()">YES</button>
+        <button type="button" class="no-btn" onclick="cancelLogout()">NO</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+ 

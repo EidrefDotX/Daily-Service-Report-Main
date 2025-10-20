@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - dot[X]solutions</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000">
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; 
+      margin: 0; 
+      background: #f6f7fb; 
+      color: #0f172a; 
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-header { 
+      background: #000; 
+      color: #fff; 
+      padding: 20px 24px; 
+      text-align: left; 
+      margin: 0; 
+    }
+    .brand-header h1 { 
+      margin: 0; 
+      font-size: 28px; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+    }
+    .login-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .login-box {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      max-width: 420px;
+      width: 100%;
+    }
+    .logo-container {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo {
+      display: inline-block;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .logo-square {
+      width: 80px;
+      height: 80px;
+      background: #000;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-x {
+      font-size: 48px;
+      font-weight: 900;
+      color: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .logo-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-radius: 50%;
+      bottom: 12px;
+      left: 12px;
+      z-index: 3;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 12px;
+      letter-spacing: 0.5px;
+    }
+    .logo-text .highlight {
+      color: #2563eb;
+    }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      text-align: center;
+      color: #0f172a;
+    }
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+      background: #fff;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    button {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      background: #000;
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1f1f1f;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+    .info-text {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-header">
+    <h1>dot[X]solutions</h1>
+  </div>
+
+  <div class="login-container">
+    <div class="login-box">
+      <div class="logo-container">
+        <div class="logo">
+          <div class="logo-square">
+            <div class="logo-dot"></div>
+            <div class="logo-x">X</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to access Daily Service Report</p>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div>
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            placeholder="EN001-EN009 or admin"
+            required 
+            autocomplete="username"
+          >
+        </div>
+
+        <div>
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Enter your password" 
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit">Sign In</button>
+      </form>
+
+      <div class="info-text">
+        <strong>Engineers:</strong> Use engineer code (EN001-EN009) / #DotXsolutions.opc
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    async function backendLoginFallback(username, password) {
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const body = (res.headers.get('content-type') || '').includes('application/json') ? await res.json() : null;
+        if (!res.ok || !body || !body.ok || !body.token) {
+          return { ok: false, error: (body && body.error) || ('HTTP ' + res.status) };
+        }
+        try { localStorage.setItem('dsr_jwt_token', body.token); } catch (_) {}
+        return { ok: true, token: body.token };
+      } catch (e) {
+        return { ok: false, error: String(e) };
+      }
+    }
+
+    // Valid engineer codes
+    const validEngineerCodes = [
+      'EN001', 'EN002', 'EN003', 'EN004', 'EN005', 
+      'EN006', 'EN007', 'EN008', 'EN009'
+    ];
+
+    // Default password for engineers
+    const DEFAULT_PASSWORD = '#DotXsolutions.opc';
+
+    // Engineer names mapping
+    const engineerNames = {
+      'EN001': 'Reherns',
+      'EN002': 'Sam',
+      'EN003': 'Ramil',
+      'EN004': 'Vin',
+      'EN005': 'Renz',
+      'EN006': 'Brent',
+      'EN007': 'Anwil',
+      'EN008': 'Issa',
+      'EN009': 'Ana'
+    };
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+
+    function hideError() {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.classList.remove('show');
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      hideError();
+
+      const usernameRaw = document.getElementById('username').value.trim();
+      const isAdmin = (usernameRaw.toLowerCase() === 'admin');
+      const username = isAdmin ? 'admin' : usernameRaw.toUpperCase();
+      const password = document.getElementById('password').value;
+
+      // Disable submit button during login
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in...';
+      }
+
+      try {
+        // Check backend connectivity first
+        const apiBase = (window.DSRAuth && window.DSRAuth.getApiBase) ? window.DSRAuth.getApiBase() : 'http://127.0.0.1:5000';
+        console.log('Checking backend at:', apiBase);
+        try {
+          const healthCheck = await fetch(apiBase + '/health', { cache: 'no-store' });
+          if (!healthCheck.ok) {
+            showError('Backend server is not responding. Please ensure the server is running at ' + apiBase);
+            return;
+          }
+          console.log('Backend health check passed');
+        } catch (healthError) {
+          console.error('Backend health check failed:', healthError);
+          showError('Cannot connect to backend at ' + apiBase + '. Please ensure the server is running. Start it with start.bat');
+          return;
+        }
+
+        // If admin, let backend validate credentials
+        if (!isAdmin) {
+          // Only engineer codes are valid locally
+          if (!validEngineerCodes.includes(username)) {
+            showError('Invalid engineer code. Please use EN001-EN009.');
+            return;
+          }
+          // Engineer login (local password check)
+          if (password !== DEFAULT_PASSWORD) {
+            showError('Incorrect password. Please try again.');
+            return;
+          }
+        }
+
+        // Authenticate with backend to get JWT token (required)
+        let jwtToken = null;
+        try {
+          console.log('Attempting backend authentication for:', username);
+          if (window.DSRAuth && typeof window.DSRAuth.login === 'function') {
+            const loginSuccess = await window.DSRAuth.login(username, password);
+            if (!loginSuccess) {
+              const detail = (window.DSRAuthLastError ? String(window.DSRAuthLastError) : 'Ensure the server is running and try again.');
+              showError('Backend authentication failed. ' + detail);
+              return;
+            }
+            jwtToken = (typeof window.DSRAuth.getToken === 'function') ? window.DSRAuth.getToken() : (localStorage.getItem('dsr_jwt_token') || null);
+            if (!jwtToken) {
+              showError('No token received. Please try again.');
+              return;
+            }
+            console.log('Backend authentication successful. Token stored.');
+          } else {
+            console.warn('DSRAuth not available, using direct fallback.');
+            const result = await backendLoginFallback(username, password);
+            if (!result.ok || !result.token) {
+              showError('Authentication failed. ' + (result.error || 'Please try again.'));
+              return;
+            }
+            jwtToken = result.token;
+            console.log('Backend authentication (fallback) successful. Token stored.');
+          }
+        } catch (backendError) {
+          console.error('Backend authentication error:', backendError);
+          showError('Cannot contact backend. Please ensure the server is running.');
+          return;
+        }
+
+        // Store session (engineer convenience info if not admin)
+        if (!isAdmin) {
+          const loginData = {
+            engineerCode: username,
+            engineerName: engineerNames[username],
+            loginTime: new Date().toISOString(),
+            isAuthenticated: true,
+            hasJWT: !!jwtToken
+          };
+          localStorage.setItem('dsr_session', JSON.stringify(loginData));
+        }
+        console.log('Login successful, redirecting');
+        // If admin, go to admin.html; otherwise respect redirect or go to DSR.html
+        if (isAdmin) {
+          window.location.replace('admin.html');
+        } else {
+          const nextUrl = (window.DSRAuth && typeof window.DSRAuth.getRedirectTarget === 'function')
+            ? window.DSRAuth.getRedirectTarget('DSR.html')
+            : 'DSR.html';
+          window.location.replace(nextUrl);
+        }
+      } catch (e) {
+        console.error('Login error:', e);
+        showError('Unable to login. Please check your credentials.');
+      } finally {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        }
+      }
+    }
+
+    // Do not auto-redirect away from login if already authenticated
+    window.addEventListener('DOMContentLoaded', () => {
+      // Intentionally left blank to keep users on login page
+    });
+  </script>
+</body>
+</html>
+
