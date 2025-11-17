@@ -82,12 +82,50 @@
     const base = getApiBase();
     const url = base + path;
     console.log('auth.js: Making request to:', url);
-    const res = await fetch(url, options || {});
-    console.log('auth.js: Response status:', res.status);
-    const isJson = (res.headers.get('content-type') || '').includes('application/json');
-    const body = isJson ? await res.json() : await res.text();
-    console.log('auth.js: Response body:', body);
-    return { res, body };
+    try {
+      const res = await fetch(url, options || {});
+      console.log('auth.js: Response status:', res.status);
+      const contentType = res.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      
+      // Read response body once (can only be read once)
+      const responseText = await res.text();
+      
+      let body;
+      if (isJson) {
+        try {
+          body = JSON.parse(responseText);
+        } catch (jsonError) {
+          console.error('auth.js: Failed to parse JSON response:', jsonError);
+          console.error('auth.js: Response text:', responseText.substring(0, 500));
+          body = { error: 'Invalid JSON response from server', ok: false };
+        }
+      } else {
+        // Handle HTML error pages (like Flask's default 500 error page)
+        console.error('auth.js: Non-JSON response (status', res.status, '):', responseText.substring(0, 500));
+        
+        // Try to extract error message from HTML if possible
+        let errorMsg = `HTTP ${res.status} Error`;
+        if (res.status >= 500) {
+          errorMsg = 'Internal server error. Please check the backend console for details.';
+        } else if (res.status === 401) {
+          errorMsg = 'Invalid username or password';
+        } else if (res.status === 400) {
+          errorMsg = 'Invalid request';
+        }
+        
+        body = { error: errorMsg, ok: false };
+      }
+      
+      console.log('auth.js: Response body:', body);
+      return { res, body };
+    } catch (fetchError) {
+      console.error('auth.js: Fetch error:', fetchError);
+      return { 
+        res: { ok: false, status: 0 }, 
+        body: { error: 'Network error: ' + fetchError.message, ok: false } 
+      };
+    }
   }
 
   function getRedirectTarget(defaultPath) {
@@ -111,14 +149,27 @@
   async function login(username, password) {
     try {
       console.log('auth.js: Attempting login for username:', username);
+      // Clear any previous error
+      try { window.DSRAuthLastError = undefined; } catch (_) {}
+      
       const { res, body } = await httpJson('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ username, password })
       });
       console.log('auth.js: Login response:', { status: res.status, body });
+      
       if (!res.ok || !body || !body.ok || !body.token) {
-        const err = (body && (body.error || body.detail)) || ('HTTP ' + res.status);
+        // Extract error message from response
+        let err = 'Login failed';
+        if (body && typeof body === 'object') {
+          err = body.error || body.detail || body.message || ('HTTP ' + res.status);
+        } else if (typeof body === 'string') {
+          err = body;
+        } else {
+          err = 'HTTP ' + res.status;
+        }
+        
         try { window.DSRAuthLastError = err; } catch (_) {}
         console.log('auth.js: Login failed -', err);
         return false;
@@ -128,7 +179,8 @@
       return true;
     } catch (e) {
       console.error('auth.js: Login error:', e);
-      try { window.DSRAuthLastError = String(e); } catch (_) {}
+      const errorMsg = e.message || String(e);
+      try { window.DSRAuthLastError = errorMsg; } catch (_) {}
       return false;
     }
   }

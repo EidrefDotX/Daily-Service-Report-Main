@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -23,7 +23,7 @@ def ensure_database_initialized(database_path: Path) -> None:
 
 		cursor.execute(
 			"INSERT INTO entries (message, created_at) VALUES (?, ?)",
-			("Sample row inserted by init_db.py", datetime.utcnow().isoformat(timespec="seconds") + "Z"),
+			("Sample row inserted by init_db.py", datetime.now(timezone.utc).isoformat(timespec="seconds") + "Z"),
 		)
 		connection.commit()
 
