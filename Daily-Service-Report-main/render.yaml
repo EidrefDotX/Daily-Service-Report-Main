@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: daily-service-report
-    env: python
-    plan: free
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: python backend/app.py
-    autoDeploy: true
-
