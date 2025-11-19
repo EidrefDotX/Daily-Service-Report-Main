@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - dot[X]solutions</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000">
+  <style>
+    * { font-family: Helvetica, Arial, sans-serif; }
+    body { 
+      font-family: Helvetica, Arial, sans-serif; 
+      margin: 0; 
+      background: #f6f7fb; 
+      color: #0f172a; 
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    input, select, button, textarea, table, th, td { font-family: Helvetica, Arial, sans-serif; }
+    .brand-header { 
+      background: #000; 
+      color: #fff; 
+      padding: 20px 24px; 
+      text-align: left; 
+      margin: 0; 
+      display: flex;
+      align-items: center;
+    }
+    .brand-logo { height: 32px; width: auto; display: block; }
+    .brand-header h1 { 
+      margin: 0; 
+      font-size: 28px; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      font-family: Helvetica, Arial, sans-serif; 
+    }
+    .login-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .login-box {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      max-width: 420px;
+      width: 100%;
+    }
+    .logo-container {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo {
+      display: inline-block;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .logo-square {
+      width: 80px;
+      height: 80px;
+      background: #000;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-x {
+      font-size: 48px;
+      font-weight: 900;
+      color: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .logo-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-radius: 50%;
+      bottom: 12px;
+      left: 12px;
+      z-index: 3;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 12px;
+      letter-spacing: 0.5px;
+    }
+    .logo-text .highlight {
+      color: #2563eb;
+    }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      text-align: center;
+      color: #0f172a;
+    }
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+      background: #fff;
+      color: #000;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .password-container {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .password-container input[type="password"],
+    .password-container input[type="text"] {
+      padding-right: 48px;
+      margin-bottom: 0;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      width: auto;
+      margin: 0;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover {
+      color: #000;
+      background: none;
+      transform: translateY(-50%);
+    }
+    .toggle-password:active {
+      transform: translateY(-50%);
+    }
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: #000;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      background: #000;
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1f1f1f;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+    .info-text {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    
+    /* ========================================
+       RESPONSIVE DESIGN - MOBILE & TABLET
+       ======================================== */
+    
+    /* Tablet and Mobile (up to 768px) */
+    @media screen and (max-width: 768px) {
+      .brand-header { 
+        padding: 12px 16px; 
+      }
+      .brand-header h1 { 
+        font-size: 20px; 
+      }
+      .login-container { 
+        padding: 20px 12px; 
+      }
+      .login-box { 
+        padding: 24px 20px; 
+        max-width: 100%;
+      }
+      .logo-square { 
+        width: 64px; 
+        height: 64px; 
+      }
+      .logo-x { 
+        font-size: 40px; 
+      }
+      .logo-text {
+        font-size: 20px;
+      }
+      h2 { 
+        font-size: 20px; 
+        margin-bottom: 8px;
+      }
+      .subtitle { 
+        font-size: 13px; 
+        margin-bottom: 24px;
+      }
+      input[type="text"], 
+      input[type="password"] { 
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents iOS zoom */
+        min-height: 48px;
+      }
+      button { 
+        padding: 14px 16px;
+        font-size: 15px;
+        min-height: 48px;
+      }
+      .info-text {
+        font-size: 12px;
+        margin-top: 20px;
+      }
+    }
+    
+    /* Small mobile devices (up to 480px) */
+    @media screen and (max-width: 480px) {
+      .brand-header { 
+        padding: 10px 12px; 
+      }
+      .brand-header h1 { 
+        font-size: 18px; 
+      }
+      .login-container { 
+        padding: 16px 8px; 
+      }
+      .login-box { 
+        padding: 20px 16px; 
+      }
+      .logo-square { 
+        width: 56px; 
+        height: 56px; 
+      }
+      .logo-x { 
+        font-size: 36px; 
+      }
+      .logo-text {
+        font-size: 18px;
+      }
+      h2 { 
+        font-size: 18px; 
+      }
+      .subtitle { 
+        font-size: 12px; 
+      }
+      .info-text {
+        font-size: 11px;
+        line-height: 1.5;
+      }
+    }
+    
+    /* Touch-friendly on mobile devices */
+    @media (hover: none) and (pointer: coarse) {
+      input[type="text"], 
+      input[type="password"] {
+        min-height: 48px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+      }
+      button {
+        min-height: 48px;
+      }
+      .toggle-password {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    }
+    
+    /* Landscape mobile orientation */
+    @media screen and (max-width: 768px) and (orientation: landscape) {
+      .login-container {
+        padding: 12px;
+      }
+      .login-box {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-header">
+    <h1>dot[X].solutions</h1>
+  </div>
+
+  <div class="login-container">
+    <div class="login-box">
+      <div class="logo-container">
+        <div class="logo">
+          <div class="logo-square">
+            <div class="logo-x">[X]</div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to access Daily Service Report</p>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div>
+          <input 
+            type="text" 
+            id="username" 
+            placeholder="Engineer Code"
+            required 
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="password-container">
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Enter your password" 
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">
+            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+
+        <button type="submit">Sign In</button>
+      </form>
+
+      <div class="info-text">
+        <strong>Engineers:</strong> Use engineer code (EN001-EN011) / #DotXsolutions.opc
+      </div>
+    </div>
+  </div>
+
+  
+
+  <script src="auth.js"></script>
+  <script>
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        // Change to "eye-off" icon
+        eyeIcon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        `;
+      } else {
+        passwordInput.type = 'password';
+        // Change back to "eye" icon
+        eyeIcon.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        `;
+      }
+    }
+
+    async function backendLoginFallback(username, password) {
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const body = (res.headers.get('content-type') || '').includes('application/json') ? await res.json() : null;
+        if (!res.ok || !body || !body.ok || !body.token) {
+          return { ok: false, error: (body && body.error) || ('HTTP ' + res.status) };
+        }
+        try { localStorage.setItem('dsr_jwt_token', body.token); } catch (_) {}
+        return { ok: true, token: body.token };
+      } catch (e) {
+        return { ok: false, error: String(e) };
+      }
+    }
+
+    // Valid engineer codes
+    const validEngineerCodes = [
+      'EN001', 'EN002', 'EN003', 'EN004', 'EN005', 
+      'EN007', 'EN008', 'EN009', 'EN010', 'EN011'
+    ];
+
+    // Default password for engineers
+    const DEFAULT_PASSWORD = '#DotXsolutions.opc';
+
+    // Engineer names mapping
+    const engineerNames = {
+      'EN001': 'JKC',
+      'EN002': 'RRM',
+      'EN003': 'VRG',
+      'EN004': 'JRM',
+      'EN005': 'RRP',
+      'EN007': 'RDB',
+      'EN008': 'ASO',
+      'EN009': 'AMM',
+      'EN010': 'MLL',
+      'EN011': 'PHC'
+    };
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+
+    function hideError() {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.classList.remove('show');
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      hideError();
+
+      const usernameRaw = document.getElementById('username').value.trim();
+      const isAdmin = (usernameRaw.toLowerCase() === 'admin');
+      const username = isAdmin ? 'admin' : usernameRaw.toUpperCase();
+      const password = document.getElementById('password').value;
+
+      console.log('Login attempt:', { usernameRaw, isAdmin, username, passwordLength: password.length });
+
+      // Disable submit button during login
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in...';
+      }
+
+      try {
+        // Check backend connectivity first
+        const apiBase = (window.DSRAuth && window.DSRAuth.getApiBase) ? window.DSRAuth.getApiBase() : 'http://127.0.0.1:5000';
+        console.log('Checking backend at:', apiBase);
+        try {
+          const healthCheck = await fetch(apiBase + '/health', { cache: 'no-store' });
+          if (!healthCheck.ok) {
+            showError('Backend server is not responding. Please ensure the server is running at ' + apiBase);
+            return;
+          }
+          console.log('Backend health check passed');
+        } catch (healthError) {
+          console.error('Backend health check failed:', healthError);
+          showError('Cannot connect to backend at ' + apiBase + '. Please ensure the server is running. Start it with start.bat');
+          return;
+        }
+
+        // If admin, let backend validate credentials
+        if (!isAdmin) {
+          // Only engineer codes are valid locally
+          if (!validEngineerCodes.includes(username)) {
+            showError('Invalid Username or Password');
+            return;
+          }
+          // Engineer login (local password check)
+          if (password !== DEFAULT_PASSWORD) {
+            showError('Invalid Username or Password');
+            return;
+          }
+        }
+
+        // Authenticate with backend to get JWT token (required)
+        let jwtToken = null;
+        try {
+          console.log('Attempting backend authentication for:', username);
+          if (window.DSRAuth && typeof window.DSRAuth.login === 'function') {
+            const loginSuccess = await window.DSRAuth.login(username, password);
+            console.log('DSRAuth.login result:', loginSuccess);
+            if (!loginSuccess) {
+              const errorMsg = window.DSRAuthLastError || 'Invalid Username or Password';
+              console.error('Login failed:', errorMsg);
+              showError(errorMsg);
+              return;
+            }
+            jwtToken = (typeof window.DSRAuth.getToken === 'function') ? window.DSRAuth.getToken() : (localStorage.getItem('dsr_jwt_token') || null);
+            if (!jwtToken) {
+              showError('No token received. Please try again.');
+              return;
+            }
+            console.log('Backend authentication successful. Token stored.');
+          } else {
+            console.warn('DSRAuth not available, using direct fallback.');
+            const result = await backendLoginFallback(username, password);
+            console.log('Fallback login result:', result);
+            if (!result.ok || !result.token) {
+              showError(result.error || 'Invalid Username or Password');
+              return;
+            }
+            jwtToken = result.token;
+            console.log('Backend authentication (fallback) successful. Token stored.');
+          }
+        } catch (backendError) {
+          console.error('Backend authentication error:', backendError);
+          showError('Cannot contact backend. Please ensure the server is running.');
+          return;
+        }
+
+        // Store session (engineer convenience info if not admin)
+        if (!isAdmin) {
+          const loginData = {
+            engineerCode: username,
+            engineerName: engineerNames[username],
+            loginTime: new Date().toISOString(),
+            isAuthenticated: true,
+            hasJWT: !!jwtToken
+          };
+          localStorage.setItem('dsr_session', JSON.stringify(loginData));
+        }
+        console.log('Login successful, redirecting');
+        const nextUrl = isAdmin
+          ? 'admin.html'
+          : ((window.DSRAuth && typeof window.DSRAuth.getRedirectTarget === 'function')
+            ? window.DSRAuth.getRedirectTarget('DSR.html')
+            : 'DSR.html');
+        try { window.location.replace(nextUrl); } catch (_) { window.location.href = nextUrl; }
+      } catch (e) {
+        console.error('Login error:', e);
+        showError('Invalid Username or Password');
+      } finally {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        }
+      }
+    }
+
+    // Do not auto-redirect away from login if already authenticated
+    window.addEventListener('DOMContentLoaded', () => {
+      // Intentionally left blank to keep users on login page
+    });
+  </script>
+</body>
+</html>
+
