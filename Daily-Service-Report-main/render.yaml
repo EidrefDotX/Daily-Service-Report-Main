@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: daily-service-report
-    env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: waitress-serve --port=$PORT --call app:create_app
-    autoDeploy: true
