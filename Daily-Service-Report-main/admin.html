@@ -1,0 +1,3144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Daily Service Reports</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    * { font-family: Helvetica, Arial, sans-serif; }
+    body { font-family: Helvetica, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #0f172a; }
+    input, select, button, textarea, table, th, td { font-family: Helvetica, Arial, sans-serif; }
+    .brand-header { 
+      background: #000; 
+      color: #fff; 
+      padding: 20px 24px; 
+      text-align: left; 
+      margin: 0; 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-header h1 { 
+      margin: 0; 
+      font-size: 28px; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      font-family: Helvetica, Arial, sans-serif; 
+      color: #fff; 
+    }
+    .burger-btn { background: transparent; border: 0; width: 28px; height: 22px; padding: 3px; cursor: pointer; display: inline-flex; flex-direction: column; justify-content: space-between; }
+    .burger-btn .line { width: 100%; height: 1.5px; background: #fff; border-radius: 2px; }
+    .brand-logo { height: 32px; width: auto; display: block; }
+    .header-icons { display: flex; align-items: center; gap: 16px; }
+    .notification-btn { background: transparent; border: 0; color: #fff; cursor: pointer; padding: 6px; position: relative; display: flex; align-items: center; justify-content: center; }
+    .notification-btn svg { width: 22px; height: 22px; }
+    .notification-badge { position: absolute; top: 2px; right: 2px; background: #ef4444; color: #fff; border-radius: 50%; width: 8px; height: 8px; font-size: 9px; font-weight: 700; display: none; }
+    .notification-badge.active { display: block; }
+    .notification-count { position: absolute; top: -4px; right: -8px; background: #ef4444; color: #fff; border-radius: 10px; min-width: 18px; height: 18px; font-size: 11px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 5px; border: 2px solid #000; }
+    .notification-count.active { display: flex; }
+    /* Notification dropdown */
+    .notification-dropdown { position: absolute; top: 50px; right: 70px; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.15); width: 320px; max-height: 400px; overflow-y: auto; z-index: 1001; display: none; }
+    .notification-dropdown.show { display: block; }
+    .notification-header { padding: 16px; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #0f172a; display: flex; justify-content: space-between; align-items: center; }
+    .notification-header-title { font-size: 14px; }
+    .notification-header-count { font-size: 12px; color: #64748b; font-weight: 500; margin-left: 8px; }
+    .notification-clear { background: transparent; border: 0; color: #2563eb; font-size: 12px; cursor: pointer; font-weight: 600; padding: 6px 10px; border-radius: 6px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; position: relative; min-width: 80px; justify-content: center; }
+    .notification-clear:hover:not(:disabled) { background: #eff6ff; color: #1d4ed8; transform: translateY(-1px); }
+    .notification-clear:active:not(:disabled) { transform: translateY(0); }
+    .notification-clear:disabled { cursor: not-allowed; opacity: 0.7; }
+    .notification-clear.loading { color: #64748b; background: #f1f5f9; }
+    .notification-clear.success { color: #10b981; background: #ecfdf5; }
+    .notification-clear.success:hover:not(:disabled) { background: #d1fae5; }
+    .refresh-spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .refresh-spinner.hidden { display: none; }
+    .refresh-icon { display: inline-block; width: 12px; height: 12px; transition: transform 0.3s; }
+    .refresh-icon.rotating { animation: rotate 0.5s ease-in-out; }
+    .refresh-success-icon { display: inline-block; width: 12px; height: 12px; color: #10b981; opacity: 0; transform: scale(0); transition: all 0.3s; }
+    .refresh-success-icon.show { opacity: 1; transform: scale(1); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .notification-clear.pulsing { animation: pulse 1.5s ease-in-out infinite; }
+    .notification-list { padding: 0; margin: 0; list-style: none; }
+    .notification-item { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; position: relative; }
+    .notification-item:hover { background: #f8fafc; }
+    .notification-item.unread { background: #eff6ff; }
+    .notification-item.login-type { border-left: 3px solid #10b981; }
+    .notification-item.login-type.unread { background: #ecfdf5; border-left: 3px solid #10b981; }
+    .notification-item.report-type { border-left: 3px solid #3b82f6; }
+    .notification-item.report-type.unread { background: #eff6ff; border-left: 3px solid #3b82f6; }
+    .notification-time { font-size: 11px; color: #64748b; margin-top: 4px; }
+    .notification-message { font-size: 13px; color: #0f172a; font-weight: 500; }
+    .notification-type-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-right: 6px; }
+    .notification-type-badge.login { background: #d1fae5; color: #065f46; }
+    .notification-type-badge.report { background: #dbeafe; color: #1e40af; }
+    .notification-empty { padding: 40px 20px; text-align: center; color: #64748b; font-size: 14px; }
+    .container { max-width: 100%; margin: 24px 0 0 0; background: transparent; padding: 20px 20px 0 20px; border-radius: 0; box-shadow: none; width: 100%; box-sizing: border-box; }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    .topbar { display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .filters { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); 
+      gap: 8px; 
+      margin: 12px 0 20px; 
+      justify-content: center;
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .date-filter-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+    .date-filter-wrapper input {
+      flex: 1;
+    }
+    .download-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .download-dropdown-btn {
+      background: #000000;
+      color: #fff;
+      border: 2px solid #000000;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      min-width: 36px;
+      height: 36px;
+    }
+    .download-dropdown-btn:hover {
+      background: #333333;
+      border-color: #333333;
+      transform: translateY(-1px);
+    }
+    .download-dropdown-btn:active {
+      transform: translateY(0);
+      background: #1a1a1a;
+    }
+    .download-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 180px;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .download-dropdown-menu.show {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .download-dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      color: #0f172a;
+    }
+    .download-dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .download-dropdown-item:hover {
+      background: #f8fafc;
+    }
+    .download-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .download-dropdown-item span {
+      flex: 1;
+    }
+    input, select, button { padding: 6px 10px; border: 2px solid #64748b; border-radius: 6px; font-size: 13px; }
+    button { appearance: none; border: 0; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    table {
+      width: 100%;
+      max-width: 1300px;
+      margin: 0; /* centered by flex wrapper */
+      border-collapse: collapse;
+      border: 2px solid #cbd5e1; /* visible outer border */
+      border-top: 3px solid #2563eb; /* accent bar */
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.85); /* more transparent white */
+      backdrop-filter: blur(24px) saturate(180%); /* stronger frosted glass blur effect */
+      -webkit-backdrop-filter: blur(24px) saturate(180%); /* Safari support */
+      box-shadow: 0 15px 50px rgba(2, 6, 23, 0.2); /* deeper shadow */
+      table-layout: fixed; /* Important for column control */
+    }
+    th, td {
+      font-size: 13px;
+      padding: 12px 16px;
+      border: 1px solid #cbd5e1; /* visible grid lines on all sides */
+      text-align: left;
+      vertical-align: middle;
+      background: rgba(255, 255, 255, 0.4); /* more transparent for stronger blur effect */
+      white-space: nowrap; /* keep text and numbers on one line */
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Column width optimization */
+    th.col-id, td.col-id {
+      width: 50px;
+      min-width: 50px;
+    }
+    th:nth-child(2), td:nth-child(2) { /* Date */
+      width: 100px;
+    }
+    th:nth-child(3), td:nth-child(3) { /* Engineer */
+      width: 100px;
+    }
+    th:nth-child(4), td:nth-child(4) { /* Project Code */
+      width: 100px;
+    }
+    th:nth-child(5), td:nth-child(5) { /* Project Name */
+      width: 350px; /* Expanded to show more content */
+    }
+    th:nth-child(6), td:nth-child(6) { /* On-site */
+      width: 110px;
+    }
+    th:nth-child(7), td:nth-child(7) { /* Travel */
+      width: 110px;
+    }
+    th:nth-child(8), td:nth-child(8) { /* Action */
+      width: 140px;
+      padding: 6px 8px !important;
+      text-align: center;
+    }
+    /* Action buttons - compact styling */
+    td:nth-child(8) button {
+      padding: 5px 9px;
+      font-size: 11px;
+      border-radius: 4px;
+      margin: 0;
+    }
+    td:nth-child(8) button[data-action="view"] {
+      margin-right: 3px;
+    }
+    thead th { position: sticky; top: 0; z-index: 1; }
+    tbody tr:nth-child(odd) { background: rgba(248, 250, 252, 0.4); }
+    tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
+    /* Emphasize the ID column with left/right borders */
+    th.col-id, td.col-id {
+      text-align: left;
+      border-left: 1px solid #cbd5e1;
+      border-right: 1px solid #cbd5e1;
+    }
+    th {
+      background: #000; /* black background */
+      font-weight: 700;
+      color: #fff; /* white text */
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #cbd5e1; /* visible header divider */
+    }
+    /* keep consistent gridlines on edges */
+    thead th:first-child, tbody td:first-child { border-left: 1px solid #cbd5e1; }
+    thead th:last-child, tbody td:last-child { border-right: 1px solid #cbd5e1; }
+    tbody tr { transition: background-color 0.2s ease; }
+    tbody tr:hover { background-color: rgba(238, 242, 255, 0.5); }
+    /* keep bottom gridline via cell borders; no override */
+    .muted { color: #64748b; }
+    .logout-btn { background: #ef4444; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 0; font-weight: 600; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-overlay.show { display: flex; }
+    .modal-dialog { background: #fff; width: 95%; max-width: 900px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .modal-body { max-height: 75vh; overflow: auto; padding: 4px; }
+
+    /* (reverted) */
+    .sig { max-width: 100%; height: auto; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; }
+    .table-center { 
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      margin-bottom: 0;
+    }
+    /* Slide-in menu */
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; z-index: 999; }
+    .menu-overlay.show { display: block; }
+    .side-menu { position: fixed; top: 0; right: -200px; width: 180px; height: 100%; background: #fff; color: #0f172a; box-shadow: -10px 0 24px rgba(2,6,23,0.12); transition: right .25s ease; z-index: 1000; padding: 16px; border-radius: 16px 0 0 16px; display: none; visibility: hidden; opacity: 0; transition: right .25s ease, opacity .25s ease; }
+    .side-menu.show { right: 0; display: block; visibility: visible; opacity: 1; }
+    .side-menu .menu-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .side-menu .menu-item:hover { background: #cbd5e1; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+    .confirm-btn { background: #ef4444; color: #fff; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .cancel-btn { background: #e2e8f0; color: #0f172a; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    /* Match DSR logout modal sizing and centering without affecting other modals */
+    #logoutOverlay .modal-dialog { width: 90%; max-width: 360px; text-align: center; }
+    #logoutOverlay .modal-dialog p { margin: 0 0 12px; color: #0f172a; font-weight: 600; }
+    /* Success Modal */
+    .success-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .success-modal-overlay.show { display: flex; }
+    .success-modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 32px 24px; box-shadow: 0 10px 40px rgba(0,0,0,.2); text-align: center; animation: scaleIn 0.3s ease; }
+    @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-icon { width: 72px; height: 72px; margin: 0 auto 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; }
+    .success-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+    .success-message { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .success-btn { background: #10b981; color: #fff; padding: 12px 32px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .success-btn:hover { background: #059669; }
+    /* Project List Modal */
+    .projects-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 10001; }
+    .projects-modal-overlay.show { display: flex; }
+    .projects-modal-dialog { background: #fff; width: 98%; max-width: 98%; border-radius: 12px; padding: 0; box-shadow: 0 10px 40px rgba(0,0,0,.3); display: flex; flex-direction: column; max-height: 90vh; }
+    .projects-modal-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .projects-modal-header h2 { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; }
+    .projects-modal-close { background: transparent; border: 0; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+    .projects-modal-close:hover { background: #f1f5f9; color: #0f172a; }
+    .projects-modal-body { padding: 20px 24px; overflow-y: auto; overflow-x: hidden; flex: 1; min-height: 0; }
+    /* Project list table styles */
+    .table-wrapper { display: flex; flex-direction: column; width: 100%; align-items: center; }
+    .project-controls { margin-bottom: 12px; display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; }
+    .project-controls input { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; max-width: 250px; }
+    .project-controls button { padding: 6px 12px; font-size: 13px; border-radius: 6px; }
+    .table-center { display: flex; justify-content: center; width: 100%; overflow-x: visible; }
+    .projects-table { width: 100%; margin: 0 auto; border-collapse: collapse; border: 2px solid #cbd5e1; border-top: 3px solid #2563eb; border-radius: 10px; overflow: hidden; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: 0 15px 50px rgba(2, 6, 23, 0.2); table-layout: auto; }
+    .projects-table th, .projects-table td { font-size: 13px; padding: 12px 16px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background: rgba(255, 255, 255, 0.4); }
+    .projects-table th { background: #000; font-weight: 700; color: #fff; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 1; padding: 12px 16px; white-space: nowrap; }
+    .projects-table th:nth-child(1), .projects-table td:nth-child(1) { min-width: 120px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(2), .projects-table td:nth-child(2) { min-width: 130px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(3), .projects-table td:nth-child(3) { min-width: 150px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(4), .projects-table td:nth-child(4) { min-width: 200px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(5), .projects-table td:nth-child(5) { min-width: 120px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(6), .projects-table td:nth-child(6) { min-width: 150px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(7), .projects-table td:nth-child(7) { min-width: 100px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(8), .projects-table td:nth-child(8) { min-width: 140px; padding: 6px 8px !important; text-align: center; white-space: nowrap; }
+    .projects-table tbody tr:nth-child(odd) { background: rgba(248, 250, 252, 0.4); }
+    .projects-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
+    .projects-table tbody tr:hover { background-color: rgba(238, 242, 255, 0.5); }
+    .projects-table .actions-cell button { padding: 5px 9px; font-size: 11px; border-radius: 4px; margin: 0 3px 0 0; background: #e2e8f0; color: #0f172a; border: 0; cursor: pointer; font-weight: 600; }
+    .projects-table .actions-cell button:hover { background: #cbd5e1; }
+    /* Project form modals */
+    .project-form-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 10002; }
+    .project-form-modal.show { display: flex; }
+    .project-form-dialog { background: #fff; width: 95%; max-width: 600px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+    .project-form-header { text-align: center; margin-bottom: 20px; }
+    .project-form-header h2 { margin: 0; font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+    .form-group input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #000; border-radius: 8px; font-size: 14px; }
+    .form-group input:disabled { background-color: #e5e7eb; cursor: not-allowed; opacity: 0.7; }
+    .project-form-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+    .save-btn { background: #e2e8f0; color: #0f172a; padding: 10px 32px; border-radius: 24px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .cancel-btn { background: #e2e8f0; color: #0f172a; padding: 10px 32px; border-radius: 24px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .save-btn:hover, .cancel-btn:hover { background: #cbd5e1; }
+    /* Draft notification modal */
+    .draft-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 10003; }
+    .draft-modal-overlay.show { display: flex; }
+    .draft-modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 12px; padding: 28px; box-shadow: 0 10px 40px rgba(0,0,0,.2); text-align: center; animation: slideDown 0.3s ease; }
+    @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .draft-modal-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; }
+    .draft-modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
+    .draft-modal-message { font-size: 14px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+    .draft-modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .draft-btn-primary { background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .draft-btn-primary:hover { background: #1d4ed8; }
+    .draft-btn-secondary { background: #e2e8f0; color: #0f172a; padding: 12px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .draft-btn-secondary:hover { background: #cbd5e1; }
+    /* Delete project modal */
+    .delete-project-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 10003; }
+    .delete-project-modal.show { display: flex; }
+    .delete-project-dialog { background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,.2); text-align: center; }
+    .delete-project-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; color: #0f172a; }
+    .delete-project-text { font-size: 14px; color: #64748b; margin-bottom: 24px; line-height: 1.5; }
+    .delete-project-actions { display: flex; gap: 10px; justify-content: center; }
+    .delete-project-confirm { background: #ef4444; color: #fff; padding: 10px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .delete-project-confirm:hover { background: #dc2626; }
+    .delete-project-cancel { background: #e2e8f0; color: #0f172a; padding: 10px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .delete-project-cancel:hover { background: #cbd5e1; }
+    
+    /* ========================================
+       RESPONSIVE DESIGN - MOBILE & TABLET
+       ======================================== */
+    
+    /* Mobile devices (phones, up to 768px) */
+    @media screen and (max-width: 768px) {
+      /* Header adjustments */
+      .brand-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      .brand-header h1 {
+        font-size: 20px;
+        flex: 1;
+        min-width: 0;
+      }
+      .header-icons {
+        gap: 8px;
+      }
+      .notification-btn {
+        padding: 4px;
+      }
+      .notification-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+      .burger-btn {
+        width: 24px;
+        height: 20px;
+      }
+      
+      /* Notification dropdown - full width on mobile */
+      .notification-dropdown {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100vh - 80px);
+        border-radius: 8px;
+      }
+      
+      /* Container adjustments */
+      .container {
+        padding: 12px;
+        margin: 12px 0 0 0;
+      }
+      
+      /* Filters - stack vertically on mobile */
+      .filters {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 12px 0 16px;
+        max-width: 100%;
+      }
+      .filters input,
+      .filters select {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      
+      /* Table - make scrollable on mobile */
+      .table-center {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -12px;
+        padding: 0 12px;
+      }
+      table {
+        min-width: 800px;
+        font-size: 12px;
+      }
+      th, td {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+      th {
+        font-size: 10px;
+        padding: 10px 8px;
+      }
+      /* Reduce column widths on mobile */
+      th.col-id, td.col-id {
+        width: 40px;
+        min-width: 40px;
+      }
+      .date-filter-wrapper {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .download-dropdown {
+        width: 100%;
+      }
+      .download-dropdown-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .download-dropdown-menu {
+        right: auto;
+        left: 0;
+        width: 100%;
+      }
+      th:nth-child(2), td:nth-child(2) { width: 80px; }
+      th:nth-child(3), td:nth-child(3) { width: 80px; }
+      th:nth-child(4), td:nth-child(4) { width: 90px; }
+      th:nth-child(5), td:nth-child(5) { width: 200px; }
+      th:nth-child(6), td:nth-child(6) { width: 90px; }
+      th:nth-child(7), td:nth-child(7) { width: 90px; }
+      th:nth-child(8), td:nth-child(8) { 
+        width: 120px; 
+        padding: 4px 6px !important;
+      }
+      td:nth-child(8) button {
+        padding: 6px 8px;
+        font-size: 10px;
+        margin: 2px;
+      }
+      
+      /* Modals - full width on mobile */
+      .modal-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 16px;
+        margin: 10px;
+        max-height: 90vh;
+      }
+      .modal-header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .modal-body {
+        max-height: calc(90vh - 100px);
+        font-size: 13px;
+      }
+      
+      /* Projects modal */
+      .projects-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+      }
+      .projects-modal-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      .projects-modal-header h2 {
+        font-size: 18px;
+      }
+      .projects-modal-body {
+        padding: 12px;
+        overflow-x: auto;
+      }
+      .projects-table {
+        min-width: 700px;
+        font-size: 11px;
+      }
+      .projects-table th,
+      .projects-table td {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+      .project-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .project-controls input {
+        max-width: 100%;
+        width: 100%;
+      }
+      .project-controls button {
+        width: 100%;
+      }
+      
+      /* Project form modals */
+      .project-form-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 16px;
+        margin: 10px;
+      }
+      .project-form-header h2 {
+        font-size: 18px;
+      }
+      .form-group {
+        margin-bottom: 14px;
+      }
+      .form-group input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .project-form-actions {
+        flex-direction: column;
+      }
+      .save-btn, .cancel-btn {
+        width: 100%;
+      }
+      
+      /* Draft modal */
+      .draft-modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+      }
+      .draft-modal-actions {
+        flex-direction: column;
+      }
+      .draft-btn-primary,
+      .draft-btn-secondary {
+        width: 100%;
+      }
+      
+      /* Delete project modal */
+      .delete-project-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+      }
+      .delete-project-actions {
+        flex-direction: column;
+      }
+      .delete-project-confirm,
+      .delete-project-cancel {
+        width: 100%;
+      }
+      
+      /* Side menu - full width on mobile */
+      .side-menu {
+        width: 100%;
+        right: -100%;
+        border-radius: 0;
+      }
+      
+      /* Success modal */
+      .success-modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 24px 16px;
+      }
+      .success-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 32px;
+      }
+      .success-title {
+        font-size: 18px;
+      }
+      .success-message {
+        font-size: 13px;
+      }
+      .success-btn {
+        width: 100%;
+        padding: 12px;
+      }
+      
+      /* Logout modal */
+      #logoutOverlay .modal-dialog {
+        width: 90%;
+        max-width: 90%;
+      }
+      .modal-actions {
+        flex-direction: column;
+      }
+      .confirm-btn, .cancel-btn {
+        width: 100%;
+      }
+    }
+    
+    /* Small mobile devices (phones, up to 480px) */
+    @media screen and (max-width: 480px) {
+      .brand-header h1 {
+        font-size: 18px;
+      }
+      .container {
+        padding: 8px;
+      }
+      h1 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+      table {
+        min-width: 700px;
+        font-size: 11px;
+      }
+      th, td {
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+      .notification-dropdown {
+        left: 5px;
+        right: 5px;
+        top: 55px;
+      }
+      .modal-dialog {
+        padding: 12px;
+      }
+    }
+    
+    /* Tablet devices (768px to 1024px) */
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+      .container {
+        padding: 16px;
+      }
+      table {
+        max-width: 100%;
+      }
+      .filters {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+      .projects-modal-dialog {
+        width: 95%;
+        max-width: 95%;
+      }
+    }
+    
+    /* Touch-friendly buttons on mobile */
+    @media (hover: none) and (pointer: coarse) {
+      button {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .notification-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      .burger-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      input, select, textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+  </style>
+  <!-- SheetJS library for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuytsCkE4S6aJ0C9xfB6f4p5QZ7w9q7m7zB4wI2L5x5w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="auth.js"></script>
+  <script>
+    function qs(id){ return document.getElementById(id); }
+
+    async function ensureAdmin() {
+      try {
+        if (!window.DSRAuth || !DSRAuth.isLoggedIn()) {
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        }
+        const me = await DSRAuth.me();
+        if (!me.ok || !me.authenticated || !me.user || me.user.role !== 'admin') {
+          alert('Admin access required');
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        }
+        return true;
+      } catch (_) {
+        window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+        return false;
+      }
+    }
+
+    function buildQuery(params) {
+      const sp = new URLSearchParams();
+      Object.entries(params).forEach(([k,v]) => { if (v) sp.set(k, v); });
+      const s = sp.toString();
+      return s ? ('?' + s) : '';
+    }
+
+    async function fetchReports() {
+      const engineer = qs('fEngineer').value.trim();
+      const project = qs('fProject').value.trim();
+      const df = qs('fFrom').value.trim();
+      const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+      const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/reports' + buildQuery({
+        engineer, project_code: project, date_from: df
+      });
+      const res = await fetch(url, { headers });
+      const isJson = (res.headers.get('content-type') || '').includes('application/json');
+      const data = isJson ? await res.json() : { ok: false };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ('HTTP ' + res.status));
+      }
+      const items = data.items || [];
+      // Store reports data for Excel export
+      window.currentReportsData = items;
+      return items;
+    }
+
+    function renderRows(items) {
+      const tbody = qs('rows');
+      tbody.innerHTML = '';
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="muted">No reports found</td></tr>';
+        return;
+      }
+      for (const r of items) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="col-id">${r.id}</td>
+          <td>${r.reportDate || ''}</td>
+          <td>${r.engineerName || ''}</td>
+          <td>${r.projectCode || ''}</td>
+          <td>${r.projectName || ''}</td>
+          <td>${r.onSiteTimeIn || ''} - ${r.onSiteTimeOut || ''}</td>
+          <td>${r.travelTimeToSite || ''} - ${r.travelTimeFromSite || ''}</td>
+          <td style="white-space: nowrap;">
+            <button data-action="view" data-id="${r.id}" class="secondary">View</button>
+            <button data-action="delete" data-id="${r.id}" class="secondary" style="background: #ef4444; color: #fff;">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+      tbody.querySelectorAll('button[data-action="view"]').forEach(btn => {
+        btn.addEventListener('click', () => openDetail(btn.getAttribute('data-id')));
+      });
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => confirmDeleteReport(btn.getAttribute('data-id')));
+      });
+    }
+
+    async function openDetail(id) {
+      const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+      const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/reports/' + id;
+      const res = await fetch(url, { headers });
+      const isJson = (res.headers.get('content-type') || '').includes('application/json');
+      const data = isJson ? await res.json() : { ok: false };
+      if (!res.ok || !data.ok) {
+        alert(data.error || ('HTTP ' + res.status));
+        return;
+      }
+      const r = data.item;
+      qs('mTitle').textContent = `Report #${r.id} — ${r.engineerName}`;
+      qs('mBody').innerHTML = `
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #2563eb;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <div><strong style="color: #64748b;">Report Date:</strong><br>${r.reportDate || 'N/A'}</div>
+            <div><strong style="color: #64748b;">Engineer:</strong><br>${r.engineerName || 'N/A'} (${r.engineerCode || 'N/A'})</div>
+          </div>
+        </div>
+
+        <fieldset style="border: 2px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <legend style="font-weight: 700; color: #0f172a; padding: 0 8px;">Project Information</legend>
+          <div style="display: grid; gap: 10px;">
+            <div><strong style="color: #64748b;">Project Phase:</strong> ${escapeHtml(r.projectPhase || 'N/A')}</div>
+            <div><strong style="color: #64748b;">Project Code:</strong> ${escapeHtml(r.projectCode || 'N/A')}</div>
+            <div><strong style="color: #64748b;">Project Name:</strong> ${escapeHtml(r.projectName || 'N/A')}</div>
+            <div><strong style="color: #64748b;">Client Name:</strong> ${escapeHtml(r.clientName || 'N/A')}</div>
+            <div><strong style="color: #64748b;">Plant Location:</strong> ${escapeHtml(r.plantLocation || 'N/A')}</div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border: 2px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <legend style="font-weight: 700; color: #0f172a; padding: 0 8px;">Time Details</legend>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <div><strong style="color: #64748b;">On-site Time In:</strong><br>${r.onSiteTimeIn || 'N/A'}</div>
+            <div><strong style="color: #64748b;">On-site Time Out:</strong><br>${r.onSiteTimeOut || 'N/A'}</div>
+            <div><strong style="color: #64748b;">Travel Time To Site:</strong><br>${r.travelTimeToSite || 'N/A'}</div>
+            <div><strong style="color: #64748b;">Travel Time From Site:</strong><br>${r.travelTimeFromSite || 'N/A'}</div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border: 2px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <legend style="font-weight: 700; color: #0f172a; padding: 0 8px;">Work Details</legend>
+          <div style="margin-bottom: 12px;">
+            <strong style="color: #64748b; display: block; margin-bottom: 6px;">Work Objective:</strong>
+            <div style="background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; white-space: pre-wrap;">${escapeHtml(r.workObjective || 'N/A')}</div>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <strong style="color: #64748b; display: block; margin-bottom: 6px;">Description:</strong>
+            <div style="background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; white-space: pre-wrap;">${escapeHtml(r.description || 'N/A')}</div>
+          </div>
+          <div>
+            <strong style="color: #64748b; display: block; margin-bottom: 6px;">Outcome:</strong>
+            <div style="background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; white-space: pre-wrap;">${escapeHtml(r.outcome || 'N/A')}</div>
+          </div>
+        </fieldset>
+      `;
+      qs('modal').classList.add('show');
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function closeModal() {
+      qs('modal').classList.remove('show');
+    }
+
+    async function doLogout(event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; } } catch (_) {}
+      try {
+        // Best-effort server logout
+        if (window.DSRAuth && typeof DSRAuth.logout === 'function') await DSRAuth.logout();
+      } catch (_) {}
+      try { localStorage.removeItem('dsr_session'); } catch (_) {}
+      try { localStorage.removeItem('dsr_jwt_token'); } catch (_) {}
+      try { sessionStorage.removeItem('dsr_redirect_to'); } catch (_) {}
+      try { window.location.replace('login.html'); } catch (_) { window.location.href = 'login.html'; }
+    }
+
+    // Logout confirmation (admin)
+    window._logoutBtnRef = null;
+    function openLogoutConfirm(event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { window._logoutBtnRef = btn || null; } catch (_) { window._logoutBtnRef = null; }
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.add('show');
+    }
+    function cancelLogout() {
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.remove('show');
+    }
+    async function confirmLogout() {
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.remove('show');
+      try { await doLogout(null, window._logoutBtnRef); } catch (_) { await doLogout(null, null); }
+    }
+
+    // Delete report functionality
+    window._deleteReportId = null;
+    function confirmDeleteReport(reportId) {
+      window._deleteReportId = reportId;
+      const overlay = qs('deleteReportOverlay');
+      if (overlay) overlay.classList.add('show');
+    }
+
+    function cancelDeleteReport() {
+      window._deleteReportId = null;
+      const overlay = qs('deleteReportOverlay');
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    async function executeDeleteReport() {
+      const reportId = window._deleteReportId;
+      if (!reportId) return;
+
+      try {
+        const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+        const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/reports/' + reportId;
+        const res = await fetch(url, { method: 'DELETE', headers });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || ('HTTP ' + res.status));
+        }
+
+        // Close delete modal
+        cancelDeleteReport();
+
+        // Reload the reports list
+        await applyFilters();
+
+        // Show success modal
+        showSuccessModal('Report Deleted!', 'The report has been successfully deleted from the database.');
+      } catch (e) {
+        cancelDeleteReport();
+        alert('Failed to delete report: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function showSuccessModal(title, message) {
+      qs('successTitle').textContent = title;
+      qs('successMessage').textContent = message;
+      qs('successModal').classList.add('show');
+      
+      // Auto-close after 3 seconds
+      setTimeout(() => {
+        closeSuccessModal();
+      }, 3000);
+    }
+
+    function closeSuccessModal() {
+      qs('successModal').classList.remove('show');
+    }
+
+    // Download Dropdown Functions
+    function toggleDownloadDropdown() {
+      const menu = qs('downloadDropdownMenu');
+      if (menu) {
+        menu.classList.toggle('show');
+      }
+    }
+
+    function closeDownloadDropdown() {
+      const menu = qs('downloadDropdownMenu');
+      if (menu) {
+        menu.classList.remove('show');
+      }
+    }
+
+    // Close dropdown when clicking outside
+    function setupDownloadDropdownClickOutside() {
+      document.addEventListener('click', (e) => {
+        const dropdown = qs('downloadDropdownMenu');
+        const dropdownBtn = qs('downloadDropdownBtn');
+        
+        if (!dropdown || !dropdownBtn) return;
+        
+        // Close if clicking outside both the dropdown and the button
+        if (dropdown.classList.contains('show') && 
+            !dropdown.contains(e.target) && 
+            !dropdownBtn.contains(e.target)) {
+          closeDownloadDropdown();
+        }
+      });
+    }
+
+    // Excel Export Function
+    function exportToExcel() {
+      try {
+        // Check if SheetJS is loaded
+        if (typeof XLSX === 'undefined') {
+          alert('Excel export library is loading. Please wait a moment and try again.');
+          return;
+        }
+
+        // Check if we have data first
+        const reportsData = window.currentReportsData || [];
+        console.log('[Excel Export] Current reports data:', reportsData);
+        console.log('[Excel Export] Reports count:', reportsData.length);
+        
+        if (!reportsData || reportsData.length === 0) {
+          console.warn('[Excel Export] No reports data available');
+          alert('No data to export. Please load reports first by applying filters.\n\nMake sure you have reports displayed in the table before exporting.');
+          return;
+        }
+
+        // Suggest/Confirm Excel export with user
+        const reportCount = reportsData.length;
+        const confirmMessage = `Would you like to export ${reportCount} report(s) to an Excel file?\n\nThe file will be downloaded as "DSR_Reports_[date].xlsx" and can be opened in Microsoft Excel, Google Sheets, or any spreadsheet application.`;
+        
+        if (!confirm(confirmMessage)) {
+          // User cancelled
+          return;
+        }
+
+        const dropdownBtn = qs('downloadDropdownBtn');
+        if (dropdownBtn) {
+          dropdownBtn.disabled = true;
+          dropdownBtn.style.opacity = '0.6';
+        }
+
+        // Prepare data array with headers
+        const data = [];
+        
+        // Add headers
+        data.push([
+          'ID',
+          'Date',
+          'Engineer',
+          'Project Code',
+          'Project Name',
+          'On-site Time In',
+          'On-site Time Out',
+          'Travel Time To Site',
+          'Travel Time From Site'
+        ]);
+
+        // Add data rows from stored reports data
+        reportsData.forEach(r => {
+          data.push([
+            r.id || '',
+            r.reportDate || '',
+            r.engineerName || '',
+            r.projectCode || '',
+            r.projectName || '',
+            r.onSiteTimeIn || '',
+            r.onSiteTimeOut || '',
+            r.travelTimeToSite || '',
+            r.travelTimeFromSite || ''
+          ]);
+        });
+
+        // Create workbook and worksheet
+        console.log('[Excel Export] Creating workbook...');
+        const wb = XLSX.utils.book_new();
+        console.log('[Excel Export] Creating worksheet from data array...');
+        console.log('[Excel Export] Data array length:', data.length);
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        console.log('[Excel Export] Worksheet created successfully');
+        console.log('[Excel Export] Worksheet range:', ws['!ref']);
+
+        // Set column widths for better readability
+        ws['!cols'] = [
+          { wch: 8 },   // ID
+          { wch: 12 },  // Date
+          { wch: 15 },  // Engineer
+          { wch: 15 },  // Project Code
+          { wch: 30 },  // Project Name
+          { wch: 12 },  // On-site Time In
+          { wch: 12 },  // On-site Time Out
+          { wch: 15 },  // Travel Time To Site
+          { wch: 15 }   // Travel Time From Site
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Daily Service Reports');
+
+        // Generate filename with current date
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const filename = `DSR_Reports_${dateStr}.xlsx`;
+
+        // Write file - this should trigger browser download
+        console.log('[Excel Export] Calling XLSX.writeFile...');
+        console.log('[Excel Export] Workbook:', wb);
+        console.log('[Excel Export] Filename:', filename);
+        
+        XLSX.writeFile(wb, filename);
+        
+        console.log('[Excel Export] XLSX.writeFile completed');
+
+        // Show success message with download instructions
+        showSuccessModal('Export Successful!', `Reports exported to ${filename}\n\nThe file should download automatically. If it doesn't, check your browser's download settings or download folder.`);
+
+        // Reset button after a short delay
+        if (dropdownBtn) {
+          setTimeout(() => {
+            dropdownBtn.disabled = false;
+            dropdownBtn.style.opacity = '1';
+          }, 1000);
+        }
+
+        console.log(`[Excel Export] Successfully exported ${data.length - 1} reports to ${filename}`);
+      } catch (error) {
+        console.error('[Excel Export] Error:', error);
+        alert('Failed to export to Excel: ' + (error.message || error));
+        
+        const dropdownBtn = qs('downloadDropdownBtn');
+        if (dropdownBtn) {
+          dropdownBtn.disabled = false;
+          dropdownBtn.style.opacity = '1';
+        }
+      }
+    }
+
+    function printReportsTable() {
+      try {
+        const table = document.querySelector('.table-center table');
+        if (!table) {
+          alert('No table data to print.');
+          return;
+        }
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          alert('Pop-up blocked. Please allow pop-ups for this site.');
+          return;
+        }
+
+        const tableHtml = table.outerHTML;
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Daily Service Reports</title>
+              <style>
+                body {
+                  font-family: Helvetica, Arial, sans-serif;
+                  padding: 20px;
+                  background: #fff;
+                  color: #000;
+                }
+                h1 {
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                  font-size: 20px;
+                  margin: 0 0 10px;
+                }
+                table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin-top: 10px;
+                }
+                th, td {
+                  border: 1px solid #000;
+                  padding: 8px 10px;
+                  text-align: left;
+                  font-size: 12px;
+                }
+                th {
+                  background: #000;
+                  color: #fff;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                }
+                @media print {
+                  @page { size: landscape; margin: 12mm; }
+                }
+              </style>
+            </head>
+            <body>
+              <h1>Daily Service Reports</h1>
+              ${tableHtml}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 100);
+      } catch (error) {
+        console.error('[Print Table] Error:', error);
+        alert('Failed to print table: ' + (error.message || error));
+      }
+    }
+
+    // Notification System
+    let notifications = [];
+    const MAX_NOTIFICATIONS = 500; // Limit to prevent memory issues
+    let lastCheckTime = localStorage.getItem('admin_last_check') || '';
+    // Default clearedAt to a very old date so all notifications are shown by default
+    // Only use clearedAt from localStorage if it exists, otherwise show all notifications
+    let clearedAt = localStorage.getItem('admin_notifications_cleared_at');
+    if (!clearedAt || clearedAt === 'null' || clearedAt === 'undefined') {
+      clearedAt = '1970-01-01T00:00:00.000Z';
+      // Don't save this to localStorage - let user explicitly clear if they want
+    }
+    
+    // Helper function to limit notifications array size
+    function limitNotificationsArray() {
+      if (notifications.length > MAX_NOTIFICATIONS) {
+        // Keep only the most recent MAX_NOTIFICATIONS
+        notifications = notifications.slice(0, MAX_NOTIFICATIONS);
+        console.log(`[Notifications] Limited notifications array to ${MAX_NOTIFICATIONS} items`);
+      }
+    }
+    
+    // Debug: Log initial state
+    console.log('[Notifications] ===== INITIAL STATE =====');
+    console.log('[Notifications] lastCheckTime:', lastCheckTime || '(not set)');
+    console.log('[Notifications] clearedAt:', clearedAt);
+    console.log('[Notifications] clearedAt date:', new Date(clearedAt).toISOString());
+    console.log('[Notifications] =========================');
+    
+    // Persisted read/unread tracking
+    function loadReadSet(){
+      try {
+        const raw = localStorage.getItem('admin_read_notifications');
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch (_) { return new Set(); }
+    }
+    function saveReadSet(set){
+      try { localStorage.setItem('admin_read_notifications', JSON.stringify(Array.from(set))); } catch (_) {}
+    }
+    const readSet = loadReadSet();
+
+    // Helper function to get ISO string from Date or string
+    function getTimeISOString(timeValue) {
+      if (timeValue instanceof Date) {
+        return timeValue.toISOString();
+      } else if (typeof timeValue === 'string') {
+        return timeValue;
+      }
+      return new Date().toISOString();
+    }
+
+    async function toggleNotifications() {
+      const dropdown = qs('notificationDropdown');
+      if (!dropdown) {
+        console.error('[Notifications] Notification dropdown element not found!');
+        return;
+      }
+      
+      if (dropdown.classList.contains('show')) {
+        closeNotifications();
+      } else {
+        // Load all notifications when opening dropdown
+        console.log('[Notifications] Opening dropdown - loading all notifications in real-time');
+        try {
+          await checkForNewReports(true);
+          updateNotificationBadge();
+          renderNotifications();
+          dropdown.classList.add('show');
+          
+          // Also trigger a realtime tick to ensure we have the latest data
+          setTimeout(() => {
+            realtimeTick();
+          }, 500);
+        } catch (e) {
+          console.error('[Notifications] Error loading notifications:', e);
+          // Still show dropdown even if there's an error
+          dropdown.classList.add('show');
+        }
+      }
+    }
+
+    function closeNotifications() {
+      const dropdown = qs('notificationDropdown');
+      if (dropdown) {
+        dropdown.classList.remove('show');
+        console.log('[Notifications] Dropdown closed');
+      }
+    }
+    
+    // Close notifications when clicking outside
+    function setupNotificationClickOutside() {
+      document.addEventListener('click', (e) => {
+        const dropdown = qs('notificationDropdown');
+        const notificationBtn = qs('notificationBtn');
+        
+        if (!dropdown || !notificationBtn) return;
+        
+        // Close if clicking outside both the dropdown and the button
+        if (dropdown.classList.contains('show') && 
+            !dropdown.contains(e.target) && 
+            !notificationBtn.contains(e.target)) {
+          closeNotifications();
+        }
+      });
+    }
+
+    async function checkForNewReports(loadAll = false, signal = null) {
+      try {
+        // Check if DSRAuth is available
+        if (!window.DSRAuth) {
+          console.error('[Notifications] DSRAuth is not available!');
+          return;
+        }
+        
+        // Check if user is logged in
+        if (!DSRAuth.isLoggedIn || !DSRAuth.isLoggedIn()) {
+          console.error('[Notifications] User is not logged in!');
+          return;
+        }
+        
+        // Get authentication header
+        const authHeader = DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {};
+        if (!authHeader.Authorization) {
+          console.error('[Notifications] No authorization token available!');
+          console.error('[Notifications] Token check:', DSRAuth.getToken ? DSRAuth.getToken() : 'getToken not available');
+          return;
+        }
+        
+        const headers = Object.assign({ 'Accept': 'application/json' }, authHeader);
+        
+        // When loadAll is true, don't send 'since' parameter to get all notifications from last 24 hours
+        // When loadAll is false, use lastCheckTime to get only new notifications
+        const apiBase = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') || '';
+        const url = apiBase + '/api/notifications' + (loadAll ? '' : '?since=' + encodeURIComponent(lastCheckTime));
+        
+        console.log('[Notifications] ===== Starting notification check =====');
+        console.log('[Notifications] loadAll:', loadAll);
+        console.log('[Notifications] since:', lastCheckTime);
+        console.log('[Notifications] API Base:', apiBase);
+        console.log('[Notifications] API URL:', url);
+        console.log('[Notifications] Auth header present:', !!authHeader.Authorization);
+        console.log('[Notifications] Current notifications count:', notifications.length);
+        
+        // Add timeout to prevent hanging requests (30 seconds)
+        const timeoutController = new AbortController();
+        const timeoutId = setTimeout(() => {
+          timeoutController.abort();
+          console.log('[Notifications] Request timed out after 30 seconds');
+        }, 30000);
+        
+        // Combine timeout signal with provided signal (if any)
+        // Create a combined abort controller that respects both signals
+        const fetchOptions = { headers };
+        
+        if (signal) {
+          // Use provided signal (polling cancellation takes precedence)
+          fetchOptions.signal = signal;
+          // If timeout occurs, log it (but signal might already be aborted)
+          timeoutController.signal.addEventListener('abort', () => {
+            if (!signal.aborted) {
+              console.log('[Notifications] Timeout reached (30s), but request continues due to active signal');
+            }
+          });
+        } else {
+          // No signal provided, use timeout signal only
+          fetchOptions.signal = timeoutController.signal;
+        }
+        
+        console.log('[Notifications] Making fetch request...');
+        let res;
+        try {
+          res = await fetch(url, fetchOptions);
+          clearTimeout(timeoutId);
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          if (fetchError.name === 'AbortError') {
+            if (signal && signal.aborted) {
+              console.log('[Notifications] Request was cancelled by signal');
+            } else if (timeoutController.signal.aborted) {
+              console.log('[Notifications] Request timed out after 30 seconds');
+            } else {
+              console.log('[Notifications] Request was aborted');
+            }
+            return;
+          }
+          console.error('[Notifications] Fetch error:', fetchError);
+          throw fetchError;
+        }
+        console.log('[Notifications] Response status:', res.status, res.statusText);
+        
+        if (!res.ok) {
+          // Don't log errors for aborted requests
+          if (signal && signal.aborted) {
+            console.log('[Notifications] Request was aborted');
+            return;
+          }
+          
+          console.error('[Notifications] API request failed:', res.status, res.statusText);
+          const errorText = await res.text().catch(() => 'Unable to read error response');
+          console.error('[Notifications] Error response:', errorText);
+          
+          // If it's a 403, might be an auth issue
+          if (res.status === 403) {
+            console.error('[Notifications] Admin access required - check authentication');
+            // Try to re-authenticate or show error to user
+            if (window.DSRAuth && DSRAuth.isLoggedIn && !DSRAuth.isLoggedIn()) {
+              console.error('[Notifications] User is not logged in, redirecting to login');
+              window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+            }
+          }
+          return;
+        }
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          console.error('[Notifications] Failed to parse JSON response:', e);
+          const text = await res.text();
+          console.error('[Notifications] Response text:', text);
+          return;
+        }
+        
+        console.log('[Notifications] API response received');
+        console.log('[Notifications] Response status:', res.status);
+        console.log('[Notifications] Response OK:', res.ok);
+        console.log('[Notifications] Data OK:', data.ok);
+        console.log('[Notifications] Has notifications array:', !!data.notifications);
+        console.log('[Notifications] Response data:', JSON.stringify(data, null, 2));
+        
+        if (res.ok && data.ok && data.notifications) {
+          console.log(`[Notifications] ✓ API returned ${data.notifications.length} total notifications`);
+          
+          // Log sample notifications for debugging
+          if (data.notifications.length > 0) {
+            console.log('[Notifications] Sample notifications from API:');
+            data.notifications.slice(0, 3).forEach((n, i) => {
+              console.log(`  ${i + 1}. ${n.type}: ${n.message} (${n.time})`);
+            });
+          } else {
+            console.warn('[Notifications] ⚠️ API returned 0 notifications!');
+            console.warn('[Notifications] This could mean:');
+            console.warn('[Notifications]   1. No login events or reports in the database');
+            console.warn('[Notifications]   2. Backend query is not finding records');
+            console.warn('[Notifications]   3. Check backend console logs for [NOTIFICATIONS API] messages');
+          }
+          
+          // Filter out anything older than last cleared time
+          // Only filter if clearedAt is set to a date AFTER 1970-01-01 (meaning user explicitly cleared)
+          const clearedCutoff = new Date(clearedAt);
+          const epochDate = new Date('1970-01-01T00:00:00.000Z');
+          // Add 1 day to epoch to account for any timezone issues
+          const shouldFilter = clearedCutoff.getTime() > (epochDate.getTime() + 24 * 60 * 60 * 1000);
+          
+          console.log(`[Notifications] Raw notifications from API: ${data.notifications.length}`);
+          console.log(`[Notifications] clearedAt: ${clearedAt}`);
+          console.log(`[Notifications] clearedCutoff timestamp: ${clearedCutoff.getTime()}`);
+          console.log(`[Notifications] epochDate timestamp: ${epochDate.getTime()}`);
+          console.log(`[Notifications] Should filter by clearedAt: ${shouldFilter}`);
+          
+          let filteredFromClear = data.notifications;
+          if (shouldFilter && clearedAt && clearedAt !== '1970-01-01T00:00:00.000Z') {
+            console.log(`[Notifications] Filtering notifications by clearedAt: ${clearedAt}`);
+            filteredFromClear = data.notifications.filter(n => {
+              const notifTime = new Date(n.time);
+              const isAfterClear = notifTime.getTime() > clearedCutoff.getTime();
+              if (!isAfterClear) {
+                console.log(`[Notifications]   ✗ Filtered out: ${n.message} (${n.time} <= ${clearedAt})`);
+              }
+              return isAfterClear;
+            });
+            
+            const filteredCount = data.notifications.length - filteredFromClear.length;
+            if (filteredCount > 0) {
+              console.log(`[Notifications] Filtered ${filteredCount} notifications older than clearedAt`);
+              console.log(`[Notifications] Remaining after filter: ${filteredFromClear.length}`);
+            } else {
+              console.log(`[Notifications] No notifications filtered (all are after clearedAt)`);
+            }
+          } else {
+            console.log(`[Notifications] Not filtering by clearedAt - showing ALL ${data.notifications.length} notifications`);
+          }
+          
+          if (loadAll) {
+            // On initial load or when opening dropdown, REPLACE all notifications with API response
+            console.log(`[Notifications] Loading all ${filteredFromClear.length} notifications (replacing existing)`);
+            console.log(`[Notifications] Before load: ${notifications.length} notifications in memory`);
+            
+            notifications = filteredFromClear.map(notif => ({
+              id: notif.id,
+              type: notif.type,
+              message: notif.message,
+              time: new Date(notif.time),
+              unread: !readSet.has(notif.id),
+              reportId: notif.reportId,
+              username: notif.username,
+              role: notif.role,
+              engineerName: notif.engineerName
+            }));
+            
+            // Sort by time (most recent first)
+            notifications.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+            
+            // Limit notifications array to prevent memory issues
+            limitNotificationsArray();
+            
+            console.log(`[Notifications] ✓ Loaded ${notifications.length} notifications into memory`);
+            console.log(`[Notifications] Unread count: ${notifications.filter(n => n.unread).length}`);
+            
+            if (notifications.length === 0) {
+              console.warn('[Notifications] ⚠️ No notifications loaded! Check:');
+              console.warn('[Notifications]   1. Backend console for [NOTIFICATIONS API] logs');
+              console.warn('[Notifications]   2. Database has login_events and reports tables');
+              console.warn('[Notifications]   3. clearedAt filter: ' + clearedAt);
+            }
+            
+            updateNotificationBadge();
+            renderNotifications();
+          } else {
+            // On subsequent polls, only add notifications newer than lastCheckTime
+            // Use >= instead of > to catch notifications that happened at the exact same time
+            const notificationsToAdd = filteredFromClear.filter(notif => {
+              const notifTime = new Date(notif.time);
+              const checkTime = new Date(lastCheckTime);
+              // Compare timestamps - notification is new if it's after or equal to lastCheckTime
+              // (We use >= because lastCheckTime is set to 1 second before the most recent notification)
+              const isNewer = notifTime.getTime() >= (checkTime.getTime() - 1000); // 1 second buffer
+              if (isNewer) {
+                console.log(`[Notifications] Found new notification: ${notif.message}`);
+                console.log(`[Notifications] Notification time: ${notif.time} (${notifTime.getTime()})`);
+                console.log(`[Notifications] Last check time: ${lastCheckTime} (${checkTime.getTime()})`);
+              }
+              return isNewer;
+            });
+            console.log(`[Notifications] ${notificationsToAdd.length} new notifications found (since ${lastCheckTime})`);
+
+            let addedCount = 0;
+            if (notificationsToAdd.length > 0) {
+              notificationsToAdd.forEach(notif => {
+                const exists = notifications.find(n => n.id === notif.id);
+                if (!exists) {
+                  notifications.unshift({
+                    id: notif.id,
+                    type: notif.type,
+                    message: notif.message,
+                    time: new Date(notif.time),
+                    unread: !readSet.has(notif.id),
+                    reportId: notif.reportId,
+                    username: notif.username,
+                    role: notif.role,
+                    engineerName: notif.engineerName
+                  });
+                  addedCount++;
+                  console.log(`[Notifications] ✓ Added: ${notif.message}`);
+                } else {
+                  console.log(`[Notifications] Skipped duplicate: ${notif.message}`);
+                }
+              });
+              
+              // Sort by time (most recent first)
+              notifications.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+              
+              // Limit notifications array to prevent memory issues
+              limitNotificationsArray();
+              
+              if (addedCount > 0) {
+                console.log(`[Notifications] ✓ Added ${addedCount} new notifications`);
+              }
+            } else {
+              console.log('[Notifications] No new notifications to add');
+          }
+          
+            updateNotificationBadge();
+            renderNotifications();
+          }
+        } else if (!res.ok) {
+          console.error('[Notifications] ✗ API request failed with status:', res.status);
+          console.error('[Notifications] Response data:', data);
+        } else if (!data.ok) {
+          console.error('[Notifications] ✗ API returned error:', data.error || 'Unknown error');
+          console.error('[Notifications] Full response:', data);
+        } else if (!data.notifications) {
+          console.error('[Notifications] ✗ API response missing notifications array');
+          console.error('[Notifications] Full response:', data);
+        }
+      } catch (e) {
+        // Don't log errors for aborted requests
+        if (e.name === 'AbortError' || (signal && signal.aborted)) {
+          console.log('[Notifications] Request was aborted');
+          return;
+        }
+        console.error('[Notifications] Error checking for notifications:', e);
+        if (e.stack) {
+        console.error('[Notifications] Error stack:', e.stack);
+        }
+      }
+    }
+
+    function updateNotificationBadge() {
+      const badge = qs('notificationBadge');
+      const countEl = qs('notificationCount');
+      const unreadCount = notifications.filter(n => n.unread).length;
+      
+      console.log('[Notifications] Updating badge - Total:', notifications.length, 'Unread:', unreadCount);
+      
+      // Show badge (red dot) if there are any notifications
+      // This lets admin know there's activity
+      if (badge) {
+        if (notifications.length > 0) {
+          if (!badge.classList.contains('active')) {
+          badge.classList.add('active');
+            console.log('[Notifications] ✓ Badge activated (red dot visible) -', notifications.length, 'notifications');
+          }
+        } else {
+          if (badge.classList.contains('active')) {
+          badge.classList.remove('active');
+            console.log('[Notifications] Badge deactivated (no notifications)');
+          }
+        }
+      } else {
+        console.error('[Notifications] ✗ Badge element (#notificationBadge) not found in DOM!');
+        console.error('[Notifications] Available elements with "notification" in ID:');
+        document.querySelectorAll('[id*="notification"]').forEach(el => {
+          console.error(`  - ${el.id}`);
+        });
+      }
+      
+      // Show count badge only if there are unread notifications
+      if (countEl) {
+        if (unreadCount > 0) {
+          const countText = unreadCount > 99 ? '99+' : unreadCount.toString();
+          if (countEl.textContent !== countText) {
+            countEl.textContent = countText;
+          countEl.classList.add('active');
+            console.log('[Notifications] ✓ Count badge showing:', countText);
+          }
+        } else {
+          if (countEl.classList.contains('active')) {
+          countEl.classList.remove('active');
+            countEl.textContent = '';
+            console.log('[Notifications] Count badge hidden (no unread notifications)');
+        }
+        }
+      } else {
+        console.error('[Notifications] ✗ Count element (#notificationCount) not found in DOM!');
+      }
+    }
+
+    function renderNotifications() {
+      const list = qs('notificationList');
+      if (!list) return;
+
+      if (notifications.length === 0) {
+        list.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+        return;
+      }
+
+      // Limit notifications array if it gets too large
+      limitNotificationsArray();
+
+      list.innerHTML = notifications.map(notif => {
+        // Escape HTML in notification message and ID to prevent XSS
+        const safeMessage = escapeHtml(notif.message);
+        const safeId = escapeHtml(String(notif.id));
+        const isLogin = notif.type === 'login';
+        const typeClass = isLogin ? 'login-type' : 'report-type';
+        const typeBadge = isLogin 
+          ? '<span class="notification-type-badge login">LOGIN</span>' 
+          : '<span class="notification-type-badge report">REPORT</span>';
+        const icon = isLogin ? '👤' : '📄';
+        
+        return `
+        <li class="notification-item ${typeClass} ${notif.unread ? 'unread' : ''}" onclick="handleNotificationClick('${safeId}')">
+          <div class="notification-message">
+            ${icon} ${typeBadge}${safeMessage}
+          </div>
+          <div class="notification-time">${formatTimeAgo(notif.time)}</div>
+        </li>
+      `;
+      }).join('');
+      
+      // Update notification header count after rendering
+      updateNotificationHeaderCount();
+    }
+    
+    function updateNotificationHeaderCount() {
+      const headerCountEl = qs('notificationHeaderCount');
+      if (headerCountEl) {
+        const loginCount = notifications.filter(n => n.type === 'login').length;
+        const reportCount = notifications.filter(n => n.type === 'report').length;
+        const totalCount = notifications.length;
+        if (totalCount > 0) {
+          const newText = `(${totalCount}${loginCount > 0 ? ` - ${loginCount} login${loginCount !== 1 ? 's' : ''}` : ''}${reportCount > 0 ? `, ${reportCount} report${reportCount !== 1 ? 's' : ''}` : ''})`;
+          
+          // Add animation if count changed
+          if (headerCountEl.textContent !== newText && headerCountEl.textContent !== '') {
+            headerCountEl.style.animation = 'pulse 0.3s ease-in-out';
+            setTimeout(() => {
+              headerCountEl.style.animation = '';
+            }, 300);
+          }
+          
+          headerCountEl.textContent = newText;
+          headerCountEl.style.display = 'inline';
+        } else {
+          headerCountEl.textContent = '';
+          headerCountEl.style.display = 'none';
+        }
+      }
+    }
+
+    function handleNotificationClick(notifId) {
+      const notif = notifications.find(n => n.id === notifId);
+      if (notif) {
+        notif.unread = false;
+        try { readSet.add(notif.id); saveReadSet(readSet); } catch (_) {}
+        updateNotificationBadge();
+        closeNotifications();
+        
+        if (notif.type === 'report' && notif.reportId) {
+          openDetail(notif.reportId);
+        } else if (notif.type === 'login') {
+          renderNotifications();
+        }
+      }
+    }
+
+    function clearAllNotifications() {
+      try { notifications.forEach(n => readSet.add(n.id)); saveReadSet(readSet); } catch (_) {}
+      notifications = [];
+      clearedAt = new Date().toISOString();
+      try { 
+        localStorage.setItem('admin_notifications_cleared_at', clearedAt);
+        console.log('[Notifications] Cleared all notifications at:', clearedAt);
+      } catch (_) {}
+      // Don't update lastCheckTime when clearing - keep it so we can still detect new notifications
+      updateNotificationBadge();
+      renderNotifications();
+    }
+    
+    // Function to reset clearedAt (for debugging)
+    function resetNotificationClearedAt() {
+      clearedAt = '1970-01-01T00:00:00.000Z';
+      try {
+        localStorage.setItem('admin_notifications_cleared_at', clearedAt);
+        console.log('[Notifications] Reset clearedAt to:', clearedAt);
+        // Reload notifications
+        checkForNewReports(true).then(() => {
+          updateNotificationBadge();
+          renderNotifications();
+        });
+      } catch (e) {
+        console.error('[Notifications] Failed to reset clearedAt:', e);
+      }
+    }
+    
+    // Expose reset function to window for debugging
+    window.resetNotificationClearedAt = resetNotificationClearedAt;
+    
+    // Diagnostic function for testing notification system
+    window.testNotifications = async function() {
+      console.log('='.repeat(60));
+      console.log('NOTIFICATION SYSTEM DIAGNOSTIC TEST');
+      console.log('='.repeat(60));
+      
+      // 1. Check DOM elements
+      console.log('\n1. Checking DOM elements...');
+      const badge = qs('notificationBadge');
+      const countEl = qs('notificationCount');
+      const dropdown = qs('notificationDropdown');
+      const list = qs('notificationList');
+      const btn = qs('notificationBtn');
+      
+      console.log('  Badge element:', badge ? '✓ Found' : '✗ NOT FOUND');
+      console.log('  Count element:', countEl ? '✓ Found' : '✗ NOT FOUND');
+      console.log('  Dropdown element:', dropdown ? '✓ Found' : '✗ NOT FOUND');
+      console.log('  List element:', list ? '✓ Found' : '✗ NOT FOUND');
+      console.log('  Button element:', btn ? '✓ Found' : '✗ NOT FOUND');
+      
+      if (badge) {
+        console.log('  Badge classes:', badge.className);
+        console.log('  Badge is active:', badge.classList.contains('active') ? 'YES' : 'NO');
+      }
+      
+      // 2. Check authentication
+      console.log('\n2. Checking authentication...');
+      if (!window.DSRAuth) {
+        console.log('  ✗ DSRAuth is not available!');
+        return;
+      }
+      console.log('  DSRAuth available: ✓');
+      
+      const isLoggedIn = DSRAuth.isLoggedIn && DSRAuth.isLoggedIn();
+      console.log('  User logged in:', isLoggedIn ? '✓ YES' : '✗ NO');
+      
+      if (!isLoggedIn) {
+        console.log('  ✗ User must be logged in to test notifications!');
+        return;
+      }
+      
+      const authHeader = DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {};
+      console.log('  Auth header present:', authHeader.Authorization ? '✓ YES' : '✗ NO');
+      if (authHeader.Authorization) {
+        console.log('  Token length:', authHeader.Authorization.length);
+      }
+      
+      // 3. Check current state
+      console.log('\n3. Current notification state...');
+      console.log('  Notifications in memory:', notifications.length);
+      console.log('  Unread notifications:', notifications.filter(n => n.unread).length);
+      console.log('  lastCheckTime:', lastCheckTime || '(not set)');
+      console.log('  clearedAt:', clearedAt);
+      
+      if (notifications.length > 0) {
+        console.log('  Sample notifications:');
+        notifications.slice(0, 3).forEach((n, i) => {
+          console.log(`    ${i + 1}. [${n.type}] ${n.message} (${n.unread ? 'unread' : 'read'})`);
+        });
+      }
+      
+      // 4. Test API call
+      console.log('\n4. Testing API call...');
+      try {
+        const apiBase = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') || '';
+        const url = apiBase + '/api/notifications';
+        console.log('  API URL:', url);
+        console.log('  Making request...');
+        
+        const res = await fetch(url, { headers: authHeader });
+        console.log('  Response status:', res.status, res.statusText);
+        
+        if (res.ok) {
+          const data = await res.json();
+          console.log('  Response OK:', data.ok ? '✓ YES' : '✗ NO');
+          console.log('  Notifications in response:', data.notifications ? data.notifications.length : 0);
+          
+          if (data.notifications && data.notifications.length > 0) {
+            console.log('  Sample API notifications:');
+            data.notifications.slice(0, 3).forEach((n, i) => {
+              console.log(`    ${i + 1}. [${n.type}] ${n.message} at ${n.time}`);
+            });
+          } else {
+            console.log('  ⚠️  API returned 0 notifications!');
+            console.log('  This could mean:');
+            console.log('    - No login events or reports in database');
+            console.log('    - Backend query is not finding records');
+            console.log('    - Check backend console for [NOTIFICATIONS API] logs');
+          }
+        } else {
+          console.log('  ✗ API request failed!');
+          const errorText = await res.text();
+          console.log('  Error response:', errorText.substring(0, 200));
+        }
+      } catch (e) {
+        console.log('  ✗ Error calling API:', e.message);
+      }
+      
+      // 5. Check badge state
+      console.log('\n5. Badge state...');
+      if (badge) {
+        const isActive = badge.classList.contains('active');
+        console.log('  Badge is active:', isActive ? '✓ YES' : '✗ NO');
+        console.log('  Expected state:', notifications.length > 0 ? 'SHOULD BE ACTIVE' : 'SHOULD BE INACTIVE');
+        
+        if (notifications.length > 0 && !isActive) {
+          console.log('  ⚠️  BUG: Badge should be active but is not!');
+          console.log('  Fixing badge...');
+          badge.classList.add('active');
+          console.log('  ✓ Badge fixed!');
+        }
+      }
+      
+      console.log('\n' + '='.repeat(60));
+      console.log('DIAGNOSTIC TEST COMPLETE');
+      console.log('='.repeat(60));
+      console.log('\nTo manually test:');
+      console.log('  1. Run: await checkForNewReports(true)');
+      console.log('  2. Run: updateNotificationBadge()');
+      console.log('  3. Run: renderNotifications()');
+      console.log('  4. Run: resetNotificationClearedAt() (if notifications are filtered)');
+    };
+
+    async function refreshNotifications() {
+      const refreshBtn = qs('refreshNotificationsBtn');
+      const refreshSpinner = refreshBtn?.querySelector('.refresh-spinner');
+      const refreshIcon = refreshBtn?.querySelector('.refresh-icon');
+      const refreshText = refreshBtn?.querySelector('.refresh-text');
+      
+      // Prevent multiple simultaneous refreshes
+      if (refreshBtn?.disabled) {
+        console.log('[Notifications] Refresh already in progress, skipping...');
+        return;
+      }
+      
+      console.log('[Notifications] Manual refresh requested');
+      
+      // Show loading state
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('loading');
+      refreshBtn.classList.remove('success');
+      if (refreshSpinner) {
+        refreshSpinner.classList.remove('hidden');
+      }
+      if (refreshIcon) {
+        refreshIcon.classList.add('rotating');
+      }
+      if (refreshText) {
+        refreshText.textContent = 'Refreshing...';
+      }
+      
+      try {
+        // Load all notifications on manual refresh
+        await checkForNewReports(true);
+        
+        // Update lastCheckTime to current time for future polls
+        lastCheckTime = new Date().toISOString();
+        try {
+        localStorage.setItem('admin_last_check', lastCheckTime);
+        } catch (e) {
+          console.warn('[Notifications] Failed to save lastCheckTime:', e);
+      }
+        
+      updateNotificationBadge();
+        renderNotifications();
+        
+        const totalCount = notifications.length;
+        const unreadCount = notifications.filter(n => n.unread).length;
+        console.log('[Notifications] Refresh complete. Total:', totalCount, 'Unread:', unreadCount);
+        
+        // Show success state
+        refreshBtn.classList.remove('loading');
+        refreshBtn.classList.add('success');
+        if (refreshSpinner) {
+          refreshSpinner.classList.add('hidden');
+        }
+        if (refreshIcon) {
+          refreshIcon.classList.remove('rotating');
+          // Add a brief success animation to the icon
+          refreshIcon.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            refreshIcon.style.transform = '';
+          }, 200);
+        }
+        if (refreshText) {
+          refreshText.textContent = `Refreshed (${totalCount})`;
+        }
+        
+        // Update header count with animation
+        updateNotificationHeaderCount();
+        
+        // Reset to normal state after 2 seconds
+        setTimeout(() => {
+          refreshBtn.disabled = false;
+          refreshBtn.classList.remove('success');
+          if (refreshText) {
+            refreshText.textContent = 'Refresh';
+          }
+        }, 2000);
+      } catch (e) {
+        console.error('[Notifications] Error during refresh:', e);
+        
+        // Show error state
+        refreshBtn.classList.remove('loading', 'success');
+        if (refreshSpinner) {
+          refreshSpinner.classList.add('hidden');
+        }
+        if (refreshIcon) {
+          refreshIcon.classList.remove('rotating');
+        }
+        if (refreshText) {
+          refreshText.textContent = 'Error';
+        }
+        refreshBtn.style.color = '#ef4444';
+        
+        // Reset to normal state after 2 seconds
+        setTimeout(() => {
+          refreshBtn.disabled = false;
+          refreshBtn.style.color = '';
+          if (refreshText) {
+            refreshText.textContent = 'Refresh';
+          }
+        }, 2000);
+      }
+    }
+
+    async function refreshNotificationsFull() {
+      console.log('[Notifications] Full refresh (ignore clearedAt)');
+      // Reset clearedAt temporarily and load all
+      const prevCleared = clearedAt;
+      clearedAt = '1970-01-01T00:00:00.000Z';
+      await checkForNewReports(true);
+      // Do not persist this reset; restore clearedAt in memory
+      clearedAt = prevCleared;
+      updateNotificationBadge();
+      renderNotifications();
+    }
+
+    function formatTimeAgo(time) {
+      const seconds = Math.floor((new Date() - new Date(time)) / 1000);
+      if (seconds < 60) return 'Just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    }
+
+    // Real-time-ish updates: fast polling + refresh on focus/visibility
+    let notifController = null;
+    let notificationPollInterval = null;
+    
+    async function realtimeTick() {
+      try {
+        // Only poll if user is authenticated and DSRAuth is available
+        if (!window.DSRAuth || !DSRAuth.isLoggedIn || !DSRAuth.isLoggedIn()) {
+          console.log('[Notifications] Skipping poll - user not authenticated');
+          return;
+        }
+        
+        // Cancel previous in-flight request to avoid overlap
+        if (notifController && typeof notifController.abort === 'function') {
+          notifController.abort();
+        }
+        notifController = new AbortController();
+        
+        // Store current notification count to detect new ones
+        const beforeCount = notifications.length;
+        
+        // Use a slightly earlier time to ensure we don't miss notifications
+        // Subtract 5 seconds to account for timing differences between client and server
+        const checkTime = new Date(Date.now() - 5000);
+        const checkTimeISO = checkTime.toISOString();
+        
+        await checkForNewReports(false, notifController.signal);
+        
+        const afterCount = notifications.length;
+        
+        // Only update lastCheckTime if we successfully got notifications or if it's the first poll
+        if (afterCount > beforeCount || !lastCheckTime) {
+          // Update lastCheckTime to 5 seconds ago to ensure we catch all notifications
+          lastCheckTime = checkTimeISO;
+          try {
+            localStorage.setItem('admin_last_check', lastCheckTime);
+            console.log('[Notifications] Updated lastCheckTime to:', lastCheckTime);
+          } catch (e) {
+            console.warn('[Notifications] Failed to save lastCheckTime:', e);
+          }
+        }
+        
+        // Always update UI to ensure badge is visible
+        updateNotificationBadge();
+        renderNotifications();
+        
+        if (beforeCount !== afterCount) {
+          console.log(`[Notifications] Notification count changed: ${beforeCount} → ${afterCount}`);
+        }
+      } catch (e) {
+        // Don't log AbortError as it's expected when cancelling requests
+        if (e.name === 'AbortError' || (notifController && notifController.signal && notifController.signal.aborted)) {
+          // Silently ignore aborted requests
+          return;
+        }
+        console.error('[Notifications] Tick error (will continue):', e && e.message ? e.message : e);
+        if (e.stack) {
+          console.error('[Notifications] Error stack:', e.stack);
+        }
+      }
+    }
+    
+    function startNotificationPolling() {
+      // Stop any existing polling
+      if (notificationPollInterval) {
+        clearInterval(notificationPollInterval);
+      }
+      
+      // Real-time polling: check every 2 seconds for new notifications
+      // Reduced to 2 seconds for near real-time updates while maintaining reasonable server load
+      console.log('[Notifications] Starting real-time polling (every 2 seconds)');
+      notificationPollInterval = setInterval(realtimeTick, 2000);
+
+    // Refresh immediately when the tab regains focus or becomes visible
+      window.addEventListener('focus', () => { 
+        console.log('[Notifications] Tab focused - refreshing notifications');
+        realtimeTick(); 
+      });
+      
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+          console.log('[Notifications] Tab visible - refreshing notifications');
+        realtimeTick();
+      }
+    });
+
+    // Refresh when network comes back
+      window.addEventListener('online', () => { 
+        console.log('[Notifications] Network online - refreshing notifications immediately');
+        realtimeTick(); 
+      });
+      
+    // Refresh when user interacts with the page (mouse movement, clicks, etc.)
+    // This ensures we catch logins even faster when admin is actively using the page
+    let interactionTimeout = null;
+    const handleUserInteraction = () => {
+      // Debounce to avoid too many requests
+      if (interactionTimeout) {
+        clearTimeout(interactionTimeout);
+      }
+      interactionTimeout = setTimeout(() => {
+        console.log('[Notifications] User interaction detected - checking for new notifications');
+        realtimeTick();
+      }, 1000); // Check 1 second after user interaction
+    };
+    
+    // Listen for various user interactions
+    document.addEventListener('mousemove', handleUserInteraction, { passive: true });
+    document.addEventListener('click', handleUserInteraction, { passive: true });
+    document.addEventListener('keydown', handleUserInteraction, { passive: true });
+    }
+    
+    function stopNotificationPolling() {
+      if (notificationPollInterval) {
+        clearInterval(notificationPollInterval);
+        notificationPollInterval = null;
+        console.log('[Notifications] Stopped real-time polling');
+      }
+      if (notifController) {
+        notifController.abort();
+        notifController = null;
+      }
+    }
+
+    async function applyFilters(event) {
+      if (event) event.preventDefault();
+      try {
+        const items = await fetchReports();
+        renderRows(items);
+      } catch (e) {
+        alert('Error loading reports: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!(await ensureAdmin())) return;
+      
+      // Log session information for multi-user support verification
+      try {
+        const userInfo = await DSRAuth.me();
+        if (userInfo && userInfo.user) {
+          console.log(`✓ Multi-user session active: ${userInfo.user.username} (${userInfo.user.role})`);
+          console.log('✓ Each user has their own JWT token - multiple users can work simultaneously');
+        }
+      } catch (e) {
+        console.warn('Could not verify user session');
+      }
+      
+      document.querySelectorAll('.filters input').forEach(el => el.addEventListener('change', applyFilters));
+      qs('closeModal').addEventListener('click', closeModal);
+      await applyFilters();
+      
+      // Initialize notification system - ALWAYS load all recent notifications so the badge shows immediately
+      try {
+        const storedClearedAt = localStorage.getItem('admin_notifications_cleared_at');
+        if (storedClearedAt) {
+          clearedAt = storedClearedAt;
+        }
+        
+        console.log('[Notifications] Initializing - loading all notifications');
+        console.log('[Notifications] Cleared at:', clearedAt);
+        
+        // Always load all notifications on initialization (no 'since' parameter)
+        await checkForNewReports(true);
+        
+        // Set lastCheckTime to 5 seconds ago to catch any notifications that happened during page load
+        // This ensures we don't miss notifications when polling starts
+        const initialCheckTime = new Date(Date.now() - 5000);
+        lastCheckTime = initialCheckTime.toISOString();
+        console.log('[Notifications] Set lastCheckTime to:', lastCheckTime);
+        
+        try {
+          localStorage.setItem('admin_last_check', lastCheckTime);
+        } catch (e) {
+          console.warn('[Notifications] Failed to save lastCheckTime to localStorage:', e);
+        }
+      
+        // Log current state
+        console.log('[Notifications] ===== INITIALIZATION COMPLETE =====');
+        console.log('[Notifications] Total notifications loaded:', notifications.length);
+        const unreadCount = notifications.filter(n => n.unread).length;
+        console.log('[Notifications] Unread notifications:', unreadCount);
+        console.log('[Notifications] Read notifications:', notifications.length - unreadCount);
+        
+        if (notifications.length > 0) {
+          console.log('[Notifications] Sample notifications (first 5):');
+          notifications.slice(0, 5).forEach((n, i) => {
+            console.log(`  ${i + 1}. [${n.type}] ${n.message} (${n.unread ? 'unread' : 'read'})`);
+          });
+        } else {
+          console.warn('[Notifications] ⚠️  No notifications loaded!');
+          console.warn('[Notifications] This could mean:');
+          console.warn('[Notifications]   1. Backend API returned 0 notifications');
+          console.warn('[Notifications]   2. All notifications were filtered out by clearedAt');
+          console.warn('[Notifications]   3. Check browser console Network tab for API response');
+          console.warn('[Notifications]   4. Check backend console for [NOTIFICATIONS API] logs');
+          console.warn('[Notifications]   5. Try opening browser console and running: await checkForNewReports(true)');
+        }
+        console.log('[Notifications] ====================================');
+        
+        // Update badge and render - this is critical!
+        updateNotificationBadge();
+        renderNotifications();
+        
+        // Verify badge is visible
+        const badge = qs('notificationBadge');
+        if (badge) {
+          const isActive = badge.classList.contains('active');
+          console.log('[Notifications] Badge state after update:', isActive ? 'ACTIVE (visible)' : 'INACTIVE (hidden)');
+          if (notifications.length > 0 && !isActive) {
+            console.error('[Notifications] ⚠️  BUG: Badge should be active but is not!');
+            console.error('[Notifications] Forcing badge to active...');
+            badge.classList.add('active');
+          }
+        }
+        
+        // Start real-time polling immediately for faster updates
+        console.log('[Notifications] Starting real-time polling immediately...');
+        startNotificationPolling();
+        // Also do an immediate check to catch any notifications that happened during page load
+        console.log('[Notifications] Performing initial realtime tick...');
+        realtimeTick();
+      } catch (e) {
+        console.error('[Notifications] Error during initialization:', e);
+        console.error('[Notifications] Error stack:', e.stack);
+        // Still try to update badge even if initialization failed
+        updateNotificationBadge();
+      }
+      
+      // Setup click outside handler for notification dropdown
+      setupNotificationClickOutside();
+      
+      // Setup click outside handler for download dropdown
+      setupDownloadDropdownClickOutside();
+      
+      // Close menu and modals on ESC (project modals have priority)
+      document.addEventListener('keydown', (e) => { 
+        if (e.key === 'Escape') {
+          // Close download dropdown if open
+          closeDownloadDropdown();
+          
+          const addModal = qs('addProjectModal');
+          const deleteModal = qs('deleteProjectModal');
+          const draftModal = qs('draftModal');
+          const projectSuccessModal = qs('projectSuccessModal');
+          const projectsModal = qs('projectsModal');
+          
+          // Handle project modals first (most nested first)
+          if (addModal && addModal.classList.contains('show')) {
+            closeAddProjectModal();
+            e.stopPropagation();
+          } else if (deleteModal && deleteModal.classList.contains('show')) {
+            cancelDeleteProject();
+            e.stopPropagation();
+          } else if (draftModal && draftModal.classList.contains('show')) {
+            discardDraft();
+            e.stopPropagation();
+          } else if (projectSuccessModal && projectSuccessModal.classList.contains('show')) {
+            closeProjectSuccessModal();
+            e.stopPropagation();
+          } else if (projectsModal && projectsModal.classList.contains('show')) {
+            closeProjectsModal();
+            e.stopPropagation();
+          } else {
+            // If no project modals, close menu and notifications
+          closeMenu();
+          closeNotifications();
+          const successModal = qs('successModal');
+          if (successModal && successModal.classList.contains('show')) {
+            closeSuccessModal();
+            }
+          }
+        }
+      });
+      // Close modals and notifications on click outside
+      document.addEventListener('click', (e) => {
+        // Handle project modals first
+        const projectsModal = qs('projectsModal');
+        const addModal = qs('addProjectModal');
+        const deleteModal = qs('deleteProjectModal');
+        const projectSuccessModal = qs('projectSuccessModal');
+        const draftModal = qs('draftModal');
+        
+        if (projectsModal && projectsModal.classList.contains('show') && e.target === projectsModal) {
+          closeProjectsModal();
+          return;
+        }
+        if (addModal && addModal.classList.contains('show') && e.target === addModal) {
+          closeAddProjectModal();
+          return;
+        }
+        if (deleteModal && deleteModal.classList.contains('show') && e.target === deleteModal) {
+          cancelDeleteProject();
+          return;
+        }
+        if (projectSuccessModal && projectSuccessModal.classList.contains('show') && e.target === projectSuccessModal) {
+          closeProjectSuccessModal();
+          return;
+        }
+        if (draftModal && draftModal.classList.contains('show') && e.target === draftModal) {
+          discardDraft();
+          return;
+        }
+        
+        // Handle other modals
+        const successModal = qs('successModal');
+        if (successModal && successModal.classList.contains('show') && e.target === successModal) {
+          closeSuccessModal();
+        }
+        
+        // Notification click outside handling is now in setupNotificationClickOutside()
+      });
+    });
+
+    function openMenu(){
+      const overlay = qs('sideOverlay');
+      const menu = qs('sideMenu');
+      if (overlay) overlay.classList.add('show');
+      if (menu) menu.classList.add('show');
+    }
+    function closeMenu(){
+      const overlay = qs('sideOverlay');
+      const menu = qs('sideMenu');
+      if (overlay) overlay.classList.remove('show');
+      if (menu) menu.classList.remove('show');
+    }
+    function toggleMenu(event){
+      if (event && event.preventDefault) event.preventDefault();
+      const menu = qs('sideMenu');
+      if (menu && menu.classList.contains('show')) { closeMenu(); } else { openMenu(); }
+    }
+
+    // Project List Modal Functions
+    let projects = [];
+    let isEditMode = false;
+    let editingProjectCode = null;
+    let projectToDelete = null;
+
+    async function fetchProjectsFromBackend() {
+      try {
+        const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+        const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs';
+        // Add cache-busting parameter to ensure fresh data
+        const cacheBuster = '?_t=' + Date.now();
+        const res = await fetch(url + cacheBuster, { 
+          headers,
+          cache: 'no-cache',
+          method: 'GET'
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || ('HTTP ' + res.status));
+        }
+        return data.items || [];
+      } catch (e) {
+        console.error('Error fetching projects:', e);
+        throw e;
+      }
+    }
+
+    function openProjectsModal() {
+      qs('projectsModal').classList.add('show');
+      loadProjects();
+    }
+
+    function closeProjectsModal() {
+      qs('projectsModal').classList.remove('show');
+    }
+
+    async function loadProjects() {
+      const container = qs('projectsListContainer');
+      if (!container) {
+        console.error('Projects list container not found');
+        return;
+      }
+      
+      // Clear container first to ensure clean state
+      container.innerHTML = '<div style="text-align:center;padding:20px;">Loading projects...</div>';
+      
+      try {
+        // Force fresh fetch with cache busting
+        projects = await fetchProjectsFromBackend();
+        console.log('Loaded projects:', projects.length);
+      } catch (e) {
+        alert('Failed to load projects: ' + (e && e.message ? e.message : String(e)));
+        projects = [];
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error loading projects</div>';
+        return;
+      }
+      
+      // Clear container again before rendering
+      container.innerHTML = '';
+
+      const tableWrapper = document.createElement('div');
+      tableWrapper.className = 'table-wrapper';
+
+      const topBar = document.createElement('div');
+      topBar.className = 'project-controls';
+      topBar.innerHTML = `
+        <input id="searchInput" type="text" placeholder="Search projects..." style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;max-width:300px;">
+        <button id="addProjectBtn" style="background:#2563eb;color:#fff;border:0;font-weight:600;cursor:pointer;padding:6px 12px;font-size:13px;border-radius:6px;">+ Add Project</button>
+      `;
+      tableWrapper.appendChild(topBar);
+
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'table-center';
+      const table = document.createElement('table');
+      table.className = 'projects-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Project Code</th>
+            <th>PO/Start Date</th>
+            <th>Client</th>
+            <th>Project Name</th>
+            <th>Industry</th>
+            <th>Location</th>
+            <th>PIC</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+      
+      function renderRows(rows) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:20px;">No projects found</td></tr>';
+          return;
+        }
+        for (const p of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.code}</td>
+            <td>${p.startDate}</td>
+            <td>${p.client}</td>
+            <td>${p.name}</td>
+            <td>${p.industry}</td>
+            <td>${p.location}</td>
+            <td>${p.pic}</td>
+            <td class="actions-cell"><button data-act="delete" data-code="${p.code}">Delete</button><button data-act="edit" data-code="${p.code}">Edit</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        
+        tbody.querySelectorAll('button[data-act]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const action = e.target.getAttribute('data-act');
+            const code = e.target.getAttribute('data-code');
+            if (action === 'edit') {
+              editProject(code);
+            } else if (action === 'delete') {
+              deleteProject(code);
+            }
+          });
+        });
+      }
+      
+      renderRows(projects);
+      tableWrap.appendChild(table);
+      tableWrapper.appendChild(tableWrap);
+      container.appendChild(tableWrapper);
+      
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          const query = searchInput.value.trim().toLowerCase();
+          const filtered = projects.filter(p => 
+            (p.code + ' ' + p.name + ' ' + p.client + ' ' + p.location).toLowerCase().includes(query)
+          );
+          renderRows(filtered);
+        });
+      }
+
+      const addBtn = document.getElementById('addProjectBtn');
+      if (addBtn) {
+        addBtn.addEventListener('click', openAddProjectModal);
+      }
+    }
+
+    function openAddProjectModal() {
+      isEditMode = false;
+      editingProjectCode = null;
+      qs('projectCode').disabled = false;
+      const draft = loadDraft();
+      if (draft) {
+        showDraftNotification(draft);
+      } else {
+        clearFormFields();
+        openProjectFormModal();
+      }
+    }
+
+    function openProjectFormModal() {
+      qs('projectModalTitle').textContent = 'PROJECT DETAILS - ADD NEW';
+      qs('addProjectModal').classList.add('show');
+      enableDraftAutoSave();
+    }
+
+    function showDraftNotification(draft) {
+      qs('draftModal').classList.add('show');
+    }
+
+    function useDraftData() {
+      if (isEditMode) {
+        useEditDraftData();
+      } else {
+        const draft = loadDraft();
+        if (draft) {
+          qs('projectCode').value = draft.code || '';
+          qs('startDate').value = draft.startDate || '';
+          qs('clientName').value = draft.client || '';
+          qs('projectName').value = draft.name || '';
+          qs('industry').value = draft.industry || '';
+          qs('location').value = draft.location || '';
+          qs('pic').value = draft.pic || '';
+        }
+        qs('draftModal').classList.remove('show');
+        openProjectFormModal();
+      }
+    }
+
+    function discardDraft() {
+      if (isEditMode) {
+        discardEditDraft();
+      } else {
+        clearDraft();
+        clearFormFields();
+        qs('draftModal').classList.remove('show');
+        openProjectFormModal();
+      }
+    }
+
+    function clearFormFields() {
+      qs('projectCode').value = '';
+      qs('startDate').value = '';
+      qs('clientName').value = '';
+      qs('projectName').value = '';
+      qs('industry').value = '';
+      qs('location').value = '';
+      qs('pic').value = '';
+    }
+
+    function editProject(code) {
+      const project = projects.find(p => p.code === code);
+      if (!project) {
+        alert('Project not found!');
+        return;
+      }
+      isEditMode = true;
+      editingProjectCode = code;
+      qs('projectCode').disabled = true;
+      const editDraft = loadEditDraft(code);
+      if (editDraft) {
+        showEditDraftNotification(editDraft, project);
+      } else {
+        loadProjectDataToForm(project);
+        openEditFormModal();
+      }
+    }
+
+    function loadProjectDataToForm(project) {
+      qs('projectCode').value = project.code;
+      qs('startDate').value = project.startDate;
+      qs('clientName').value = project.client;
+      qs('projectName').value = project.name;
+      qs('industry').value = project.industry;
+      qs('location').value = project.location;
+      qs('pic').value = project.pic;
+    }
+
+    function openEditFormModal() {
+      qs('projectModalTitle').textContent = 'PROJECT DETAILS - EDIT';
+      qs('addProjectModal').classList.add('show');
+      enableDraftAutoSave();
+    }
+
+    function showEditDraftNotification(draft, originalProject) {
+      window.originalProjectBeforeEdit = originalProject;
+      qs('draftModal').classList.add('show');
+    }
+
+    function useEditDraftData() {
+      const draft = loadEditDraft(editingProjectCode);
+      if (draft) {
+        qs('projectCode').value = draft.code;
+        qs('startDate').value = draft.startDate || '';
+        qs('clientName').value = draft.client || '';
+        qs('projectName').value = draft.name || '';
+        qs('industry').value = draft.industry || '';
+        qs('location').value = draft.location || '';
+        qs('pic').value = draft.pic || '';
+      }
+      qs('draftModal').classList.remove('show');
+      openEditFormModal();
+    }
+
+    function discardEditDraft() {
+      const project = projects.find(p => p.code === editingProjectCode);
+      if (project) {
+        loadProjectDataToForm(project);
+      }
+      clearEditDraft(editingProjectCode);
+      qs('draftModal').classList.remove('show');
+      openEditFormModal();
+    }
+
+    function deleteProject(code) {
+      const project = projects.find(p => p.code === code);
+      if (!project) {
+        showProjectSuccessModal('Error', 'Project not found!');
+        return;
+      }
+      projectToDelete = { code: code, name: project.name };
+      qs('deleteProjectText').innerHTML = `Are you sure you want to delete project<br><strong>"${project.name}"</strong><br>(${code})?`;
+      qs('deleteProjectModal').classList.add('show');
+    }
+
+    async function confirmDeleteProject() {
+      if (projectToDelete) {
+        try {
+          const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs/' + encodeURIComponent(projectToDelete.code);
+          const res = await fetch(url, { method: 'DELETE', headers });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          qs('deleteProjectModal').classList.remove('show');
+          showProjectSuccessModal('Project Deleted!', `"${projectToDelete.name}" has been successfully deleted.`);
+          await loadProjects();
+          projectToDelete = null;
+        } catch (e) {
+          qs('deleteProjectModal').classList.remove('show');
+          alert('Failed to delete project: ' + (e && e.message ? e.message : String(e)));
+          projectToDelete = null;
+        }
+      }
+    }
+
+    function cancelDeleteProject() {
+      qs('deleteProjectModal').classList.remove('show');
+      projectToDelete = null;
+    }
+
+    function closeAddProjectModal() {
+      qs('addProjectModal').classList.remove('show');
+      
+      const hasContent = qs('projectCode').value.trim() || 
+                        qs('startDate').value.trim() || 
+                        qs('clientName').value.trim() || 
+                        qs('projectName').value.trim() || 
+                        qs('industry').value.trim() || 
+                        qs('location').value.trim() || 
+                        qs('pic').value.trim();
+      
+      if (hasContent) {
+        if (isEditMode && editingProjectCode) {
+          saveEditDraft(editingProjectCode);
+        } else {
+          saveDraft();
+        }
+      }
+      
+      isEditMode = false;
+      editingProjectCode = null;
+    }
+
+    function saveDraft() {
+      const draft = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      const hasContent = Object.values(draft).some(val => val && val !== draft.timestamp);
+      if (hasContent) {
+        localStorage.setItem('projectDraft', JSON.stringify(draft));
+      }
+    }
+
+    function loadDraft() {
+      try {
+        const draftStr = localStorage.getItem('projectDraft');
+        if (draftStr) {
+          return JSON.parse(draftStr);
+        }
+      } catch (e) {
+        console.error('Error loading draft:', e);
+      }
+      return null;
+    }
+
+    function clearDraft() {
+      localStorage.removeItem('projectDraft');
+    }
+
+    function saveEditDraft(projectCode) {
+      const draft = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      const hasContent = Object.values(draft).some(val => val && val !== draft.timestamp);
+      if (hasContent) {
+        localStorage.setItem(`projectEditDraft_${projectCode}`, JSON.stringify(draft));
+      }
+    }
+
+    function loadEditDraft(projectCode) {
+      try {
+        const draftStr = localStorage.getItem(`projectEditDraft_${projectCode}`);
+        if (draftStr) {
+          return JSON.parse(draftStr);
+        }
+      } catch (e) {
+        console.error('Error loading edit draft:', e);
+      }
+      return null;
+    }
+
+    function clearEditDraft(projectCode) {
+      localStorage.removeItem(`projectEditDraft_${projectCode}`);
+    }
+
+    function enableDraftAutoSave() {
+      const fields = ['projectCode', 'startDate', 'clientName', 'projectName', 'industry', 'location', 'pic'];
+      fields.forEach(fieldId => {
+        const field = qs(fieldId);
+        if (field) {
+          const newField = field.cloneNode(true);
+          field.parentNode.replaceChild(newField, field);
+          
+          newField.addEventListener('input', () => {
+            if (isEditMode && editingProjectCode) {
+              saveEditDraft(editingProjectCode);
+            } else if (!isEditMode) {
+              saveDraft();
+            }
+          });
+        }
+      });
+    }
+
+    async function saveProject() {
+      const projectData = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim()
+      };
+
+      if (!projectData.code || !projectData.startDate || !projectData.client || !projectData.name || !projectData.industry || !projectData.location || !projectData.pic) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const headers = Object.assign(
+          { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {})
+        );
+
+        if (isEditMode) {
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs/' + encodeURIComponent(editingProjectCode);
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify(projectData)
+          });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          clearEditDraft(editingProjectCode);
+          closeAddProjectModal();
+          showProjectSuccessModal('Project Updated Successfully!', `"${projectData.name}" has been updated.`);
+          await loadProjects();
+        } else {
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs';
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(projectData)
+          });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          clearDraft();
+          closeAddProjectModal();
+          
+          // Force reload projects immediately to show the new project in real-time
+          await loadProjects();
+          
+          showProjectSuccessModal('Project Added Successfully!', `"${projectData.name}" has been added to the project list.`);
+          
+          // Scroll to and highlight the newly added project
+          setTimeout(() => {
+            const tbody = document.querySelector('.projects-table tbody');
+            if (tbody) {
+              const rows = tbody.querySelectorAll('tr');
+              for (const row of rows) {
+                const codeCell = row.querySelector('td:first-child');
+                if (codeCell && codeCell.textContent.trim() === projectData.code) {
+                  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  row.style.backgroundColor = 'rgba(37, 99, 235, 0.2)';
+                  setTimeout(() => {
+                    row.style.backgroundColor = '';
+                  }, 2000);
+                  break;
+                }
+              }
+            }
+          }, 200);
+        }
+      } catch (e) {
+        alert('Failed to save project: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function showProjectSuccessModal(title, message) {
+      qs('projectSuccessTitle').textContent = title;
+      qs('projectSuccessMessage').textContent = message;
+      qs('projectSuccessModal').classList.add('show');
+      setTimeout(() => {
+        closeProjectSuccessModal();
+      }, 3000);
+    }
+
+    function closeProjectSuccessModal() {
+      qs('projectSuccessModal').classList.remove('show');
+    }
+
+    // Close project modals when clicking outside (only if modal overlay is clicked, not content)
+    window.addEventListener('click', (e) => {
+      const projectsModal = qs('projectsModal');
+      const addModal = qs('addProjectModal');
+      const deleteModal = qs('deleteProjectModal');
+      const successModal = qs('projectSuccessModal');
+      const draftModal = qs('draftModal');
+      
+      if (projectsModal && projectsModal.classList.contains('show') && e.target === projectsModal) {
+        closeProjectsModal();
+      } else if (addModal && addModal.classList.contains('show') && e.target === addModal) {
+        closeAddProjectModal();
+      } else if (deleteModal && deleteModal.classList.contains('show') && e.target === deleteModal) {
+        cancelDeleteProject();
+      } else if (successModal && successModal.classList.contains('show') && e.target === successModal) {
+        closeProjectSuccessModal();
+      } else if (draftModal && draftModal.classList.contains('show') && e.target === draftModal) {
+        discardDraft();
+      }
+    });
+
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+</head>
+<body>
+  <div class="brand-header">
+    <h1>dot[X].solutions</h1>
+    <div class="header-icons">
+      <button id="notificationBtn" class="notification-btn" aria-label="Notifications" title="Notifications" onclick="toggleNotifications()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span id="notificationBadge" class="notification-badge"></span>
+        <span id="notificationCount" class="notification-count"></span>
+      </button>
+      <button id="menuBtn" class="burger-btn" aria-label="Menu" title="Menu" onclick="toggleMenu(event)">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Notification Dropdown -->
+  <div id="notificationDropdown" class="notification-dropdown">
+    <div class="notification-header">
+      <div>
+        <span class="notification-header-title">Notifications</span>
+        <span class="notification-header-count" id="notificationHeaderCount"></span>
+      </div>
+      <div>
+        <button id="refreshNotificationsBtn" class="notification-clear" onclick="refreshNotifications()" style="margin-right:8px" title="Refresh notifications">
+          <span class="refresh-spinner hidden"></span>
+          <svg class="refresh-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span class="refresh-text">Refresh</span>
+        </button>
+        <button class="notification-clear" onclick="clearAllNotifications()" title="Clear all notifications">Clear All</button>
+      </div>
+    </div>
+    <ul id="notificationList" class="notification-list">
+      <div class="notification-empty">No notifications yet</div>
+    </ul>
+  </div>
+  
+  <div id="sideOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+  <nav id="sideMenu" class="side-menu">
+    <div class="menu-item" onclick="closeMenu(); openProjectsModal()">Project List</div>
+    <div class="menu-item" onclick="closeMenu(); openLogoutConfirm(event, this)" style="color:#ef4444;font-weight:600;">Logout</div>
+  </nav>
+  <div class="container">
+    <div class="topbar">
+      <h1>Admin — Daily Service Reports</h1>
+    </div>
+
+    <div class="filters">
+      <input id="fEngineer" type="text" placeholder="Engineer name">
+      <input id="fProject" type="text" placeholder="Project code">
+      <div class="date-filter-wrapper">
+      <input id="fFrom" type="date" placeholder="From date">
+        <div class="download-dropdown">
+          <button class="download-dropdown-btn" id="downloadDropdownBtn" onclick="toggleDownloadDropdown()" title="Export or Print">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <div class="download-dropdown-menu" id="downloadDropdownMenu">
+            <div class="download-dropdown-item" onclick="printReportsTable(); closeDownloadDropdown();">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>Print Table</span>
+            </div>
+            <div class="download-dropdown-item" onclick="exportToExcel(); closeDownloadDropdown();">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Export to Excel</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <div class="table-center">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th>Date</th>
+            <th>Engineer</th>
+            <th>Project Code</th>
+            <th>Project Name</th>
+            <th>On-site</th>
+            <th>Travel</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="8" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div id="mTitle" style="font-weight:700">Report</div>
+        <button id="closeModal" class="secondary">Close</button>
+      </div>
+      <div id="mBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Logout confirmation modal -->
+  <div id="logoutOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+    <div class="modal-dialog">
+      <p id="logoutTitle">Are you sure you want to logout?</p>
+      <div class="modal-actions">
+        <button type="button" class="confirm-btn" onclick="confirmLogout()">YES</button>
+        <button type="button" class="cancel-btn" onclick="cancelLogout()">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete report confirmation modal -->
+  <div id="deleteReportOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteReportTitle">
+    <div class="modal-dialog">
+      <p id="deleteReportTitle" style="color: #ef4444; font-weight: 700;">Delete Report?</p>
+      <p style="margin: 8px 0 16px; color: #64748b;">This action cannot be undone. The report will be permanently deleted from the database.</p>
+      <div class="modal-actions">
+        <button type="button" class="confirm-btn" onclick="executeDeleteReport()">YES, DELETE</button>
+        <button type="button" class="cancel-btn" onclick="cancelDeleteReport()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="success-modal-overlay" role="dialog" aria-modal="true">
+    <div class="success-modal-content">
+      <div class="success-icon">✓</div>
+      <h3 id="successTitle" class="success-title">Success!</h3>
+      <p id="successMessage" class="success-message">Operation completed successfully.</p>
+      <button type="button" class="success-btn" onclick="closeSuccessModal()">OK</button>
+    </div>
+  </div>
+
+  <!-- Projects List Modal -->
+  <div id="projectsModal" class="projects-modal-overlay" role="dialog" aria-modal="true">
+    <div class="projects-modal-dialog">
+      <div class="projects-modal-header">
+        <h2>Project List</h2>
+        <button class="projects-modal-close" onclick="closeProjectsModal()" aria-label="Close">×</button>
+      </div>
+      <div class="projects-modal-body">
+        <div id="projectsListContainer">
+          <div class="muted">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Project Modal -->
+  <div id="addProjectModal" class="project-form-modal" role="dialog" aria-modal="true">
+    <div class="project-form-dialog">
+      <div class="project-form-header">
+        <h2 id="projectModalTitle">PROJECT DETAILS</h2>
+      </div>
+      <div class="modal-body">
+        <form id="projectForm" onsubmit="event.preventDefault(); saveProject();">
+          <div class="form-group">
+            <label for="projectCode">Project Code:</label>
+            <input type="text" id="projectCode" required>
+          </div>
+          <div class="form-group">
+            <label for="startDate">PO/ Start Date:</label>
+            <input type="text" id="startDate" placeholder="MM/DD/YYYY" required>
+          </div>
+          <div class="form-group">
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" required>
+          </div>
+          <div class="form-group">
+            <label for="projectName">Project Name:</label>
+            <input type="text" id="projectName" required>
+          </div>
+          <div class="form-group">
+            <label for="industry">Industry:</label>
+            <input type="text" id="industry" required>
+          </div>
+          <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" id="location" required>
+          </div>
+          <div class="form-group">
+            <label for="pic">PIC:</label>
+            <input type="text" id="pic" required>
+          </div>
+          <div class="project-form-actions">
+            <button type="submit" class="save-btn">SAVE</button>
+            <button type="button" class="cancel-btn" onclick="closeAddProjectModal()">CANCEL</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Draft Notification Modal -->
+  <div id="draftModal" class="draft-modal-overlay" role="dialog" aria-modal="true">
+    <div class="draft-modal-content">
+      <div class="draft-modal-icon">📝</div>
+      <h3 class="draft-modal-title">Unsaved Draft Found</h3>
+      <p class="draft-modal-message">You have an unfinished project form. Would you like to continue editing it or start fresh?</p>
+      <div class="draft-modal-actions">
+        <button type="button" class="draft-btn-primary" onclick="useDraftData()">Continue Editing</button>
+        <button type="button" class="draft-btn-secondary" onclick="discardDraft()">Start Fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Project Modal -->
+  <div id="deleteProjectModal" class="delete-project-modal" role="dialog" aria-modal="true">
+    <div class="delete-project-dialog">
+      <p class="delete-project-title">Delete Project?</p>
+      <p id="deleteProjectText" class="delete-project-text">Are you sure you want to delete this project?</p>
+      <div class="delete-project-actions">
+        <button type="button" class="delete-project-confirm" onclick="confirmDeleteProject()">YES</button>
+        <button type="button" class="delete-project-cancel" onclick="cancelDeleteProject()">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Success Modal -->
+  <div id="projectSuccessModal" class="success-modal-overlay" role="dialog" aria-modal="true">
+    <div class="success-modal-content">
+      <div class="success-icon">✓</div>
+      <h3 id="projectSuccessTitle" class="success-title">Success!</h3>
+      <p id="projectSuccessMessage" class="success-message">Operation completed successfully.</p>
+      <button type="button" class="success-btn" onclick="closeProjectSuccessModal()">OK</button>
+    </div>
+  </div>
+</body>
+</html>
+
+
