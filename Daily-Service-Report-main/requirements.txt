@@ -1,0 +1,10 @@
+flask==3.0.3
+flask-cors==4.0.1
+flask-limiter==3.5.0
+flask-compress==1.14
+SQLAlchemy==2.0.34
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+PyJWT==2.9.0
+waitress==3.0.0
+redis==5.0.1  # Optional: for production rate limiting (install only if using Redis)
