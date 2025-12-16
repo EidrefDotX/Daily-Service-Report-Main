@@ -9,9 +9,9 @@ if BASE_DIR not in sys.path:
 # Import and create app
 from app import create_app
 
-# Vercel requires this to be named 'app'
+# Vercel requires the Flask app to be named 'app'
 app = create_app()
 
-# Export for Vercel
-__all__ = ['app']
-
+# Handler for Vercel serverless
+def handler(request):
+    return app(request.environ, request.start_response)
