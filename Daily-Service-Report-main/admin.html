@@ -1,0 +1,3475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Daily Service Reports</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    * { font-family: Helvetica, Arial, sans-serif; }
+    body { font-family: Helvetica, Arial, sans-serif; margin: 0; background: #f6f7fb; color: #0f172a; }
+    input, select, button, textarea, table, th, td { font-family: Helvetica, Arial, sans-serif; }
+    .brand-header { 
+      background: #0e1111; 
+      color: #fff; 
+      padding: 20px 24px; 
+      text-align: left; 
+      margin: 0; 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-header h1 { 
+      margin: 0; 
+      font-size: 28px; 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      font-family: Helvetica, Arial, sans-serif; 
+      color: #fff; 
+    }
+    .burger-btn { background: transparent; border: 0; width: 28px; height: 22px; padding: 3px; cursor: pointer; display: inline-flex; flex-direction: column; justify-content: space-between; }
+    .burger-btn .line { width: 100%; height: 1.5px; background: #fff; border-radius: 2px; }
+    .brand-logo { height: 32px; width: auto; display: block; }
+    .header-icons { display: flex; align-items: center; gap: 16px; }
+    .container { max-width: 100%; margin: 24px 0 0 0; background: transparent; padding: 20px 20px 0 20px; border-radius: 0; box-shadow: none; width: 100%; box-sizing: border-box; }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    .topbar { display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .filters { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); 
+      gap: 8px; 
+      margin: 12px 0 20px; 
+      justify-content: center;
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .date-filter-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+    }
+    .date-filter-wrapper input {
+      flex: 1;
+    }
+    .download-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .download-dropdown-btn {
+      background: #0e1111;
+      color: #fff;
+      border: 2px solid #0e1111;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      min-width: 36px;
+      height: 36px;
+    }
+    .download-dropdown-btn:hover {
+      background: #333333;
+      border-color: #333333;
+      transform: translateY(-1px);
+    }
+    .download-dropdown-btn:active {
+      transform: translateY(0);
+      background: #1a1a1a;
+    }
+    .download-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(14, 17, 17, 0.15);
+      min-width: 180px;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .download-dropdown-menu.show {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .download-dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      color: #0f172a;
+    }
+    .download-dropdown-item:last-child {
+      border-bottom: none;
+    }
+    .download-dropdown-item:hover {
+      background: #f8fafc;
+    }
+    .download-dropdown-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .download-dropdown-item span {
+      flex: 1;
+    }
+    input, select, button { padding: 6px 10px; border: 2px solid #64748b; border-radius: 6px; font-size: 13px; }
+    button { appearance: none; border: 0; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    /* Minimal Table Design for Better Readability */
+    table {
+      width: 100%;
+      max-width: 1300px;
+      margin: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 700px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(14, 17, 17, 0.05);
+      table-layout: fixed;
+    }
+    table th, table td {
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 12px;
+      border-right: 1px solid #e5e7eb;
+    }
+    table th:last-child, table td:last-child {
+      border-right: none;
+    }
+    table th {
+      background: #0e1111;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid #0e1111;
+      white-space: nowrap;
+      text-shadow: none;
+      box-shadow: none;
+    }
+    table th:first-child {
+      border-top-left-radius: 0;
+      border-left: none;
+    }
+    table th:last-child {
+      border-top-right-radius: 0;
+      border-right: none;
+    }
+    table tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+      transition: background 0.15s ease;
+      position: relative;
+    }
+    table tbody tr:last-child {
+      border-bottom: none;
+    }
+    table tbody tr:hover {
+      background: #f9fafb;
+    }
+    table tbody tr:nth-child(even) {
+      background: #ffffff;
+    }
+    table tbody tr:nth-child(even):hover {
+      background: #f9fafb;
+    }
+    table tbody tr:nth-child(odd) {
+      background: #fafafa;
+    }
+    table tbody tr:nth-child(odd):hover {
+      background: #f9fafb;
+    }
+    table td {
+      color: #0e1111;
+      vertical-align: middle;
+      font-weight: 400;
+      border-color: #e5e7eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    table td:first-child {
+      font-weight: 600;
+      color: #0e1111;
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+    /* Column width optimization - more compact */
+    table th.col-id, table td.col-id {
+      width: 40px;
+      min-width: 40px;
+      padding: 8px 6px;
+    }
+    table th:nth-child(2), table td:nth-child(2) { /* Date */
+      width: 90px;
+      padding: 8px 8px;
+    }
+    table th:nth-child(3), table td:nth-child(3) { /* Engineer */
+      width: 110px;
+      min-width: 110px;
+      padding: 8px 8px;
+    }
+    table th:nth-child(4), table td:nth-child(4) { /* Project Code */
+      width: 95px;
+      padding: 8px 8px;
+    }
+    table th:nth-child(5), table td:nth-child(5) { /* Project Name */
+      width: 300px;
+      padding: 8px 10px;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    table th:nth-child(6), table td:nth-child(6) { /* On-site */
+      width: 105px;
+      padding: 8px 8px;
+    }
+    table th:nth-child(7), table td:nth-child(7) { /* Overtime */
+      width: 120px;
+      padding: 8px 8px;
+    }
+    table th:nth-child(8), table td:nth-child(8) { /* Action */
+      width: 120px;
+      padding: 8px 8px;
+      text-align: center;
+    }
+    /* Action buttons - History style */
+    table .view-btn {
+      background: #0e1111;
+      color: #ffffff;
+      border: 1px solid #0e1111;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      transition: background 0.15s ease;
+      box-shadow: none;
+      position: relative;
+      overflow: hidden;
+      margin-right: 4px;
+    }
+    table .view-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+    table .view-btn:hover {
+      background: #1a1a1a;
+      border-color: #dad7d7;
+    }
+    table .view-btn:active {
+      background: #333333;
+    }
+    table .delete-btn {
+      background: #ef4444;
+      color: #ffffff;
+      border: 1px solid #ef4444;
+      padding: 6px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      transition: background 0.15s ease;
+      box-shadow: none;
+      position: relative;
+      overflow: hidden;
+    }
+    table .delete-btn:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+    }
+    table .delete-btn:active {
+      background: #b91c1c;
+    }
+    table .view-btn:disabled,
+    table .delete-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .muted { color: #64748b; }
+    .logout-btn { background: #ef4444; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 0; font-weight: 600; }
+    /* Report Detail Modal - History Style */
+    .modal-overlay { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(14,17,17,.6); 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 9999; 
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-dialog { 
+      background: #ffffff; 
+      width: 95%; 
+      max-width: 900px; 
+      max-height: 90vh; 
+      border-radius: 0; 
+      padding: 24px; 
+      box-shadow: 0 8px 32px rgba(14, 17, 17, 0.15); 
+      border: none;
+      display: flex; 
+      flex-direction: column; 
+    }
+    .modal-brand-header {
+      background: #0e1111;
+      color: #ffffff;
+      padding: 16px 20px;
+      margin: -24px -24px 20px;
+      border-bottom: 4px solid #0e1111;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .modal-brand-title {
+      margin: 0;
+      font-size: 14px; /* smaller font size */
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-family: Helvetica, Arial, sans-serif;
+      text-transform: none; /* ensure no uppercase transformation */
+    }
+    .modal-brand-meta {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #e5e7eb;
+    }
+    .modal-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 12px; 
+      padding-bottom: 0; 
+    }
+    .modal-header h2,
+    .modal-header #mTitle {
+      margin: 0; 
+      font-size: 26px; 
+      font-weight: 800; 
+      color: #0e1111;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .modal-body { 
+      flex: 1; 
+      overflow-y: auto; 
+      overflow-x: auto; 
+      padding: 4px;
+    }
+    .modal-body::-webkit-scrollbar { 
+      width: 10px; 
+      height: 10px; 
+    }
+    .modal-body::-webkit-scrollbar-track { 
+      background: #ffffff; 
+      border-left: 1px solid #0e1111; 
+    }
+    .modal-body::-webkit-scrollbar-thumb { 
+      background: #0e1111; 
+      border-radius: 0; 
+      border: 1px solid #0e1111; 
+    }
+    .modal-body::-webkit-scrollbar-thumb:hover { 
+      background: #1a1a1a; 
+    }
+    .modal-header button.secondary {
+      background: #ffffff;
+      color: #0e1111;
+      border: 2px solid #0e1111;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-header button.secondary:hover {
+      background: #f5f5f5;
+      border-color: #0e1111;
+    }
+    .print-btn-modal {
+      background: #0e1111;
+      color: #ffffff;
+      border: 2px solid #0e1111;
+      padding: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 3px rgba(14, 17, 17, 0.2);
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .print-btn-modal:hover {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(14, 17, 17, 0.25);
+    }
+    .print-btn-modal:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(14, 17, 17, 0.2);
+    }
+
+    /* (reverted) */
+    .sig { max-width: 100%; height: auto; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; }
+    .table-center { 
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      margin-bottom: 0;
+    }
+    /* Slide-in menu */
+    .menu-overlay { position: fixed; inset: 0; background: rgba(14,17,17,.4); display: none; z-index: 999; }
+    .menu-overlay.show { display: block; }
+    .side-menu { position: fixed; top: 0; right: -200px; width: 180px; height: 100%; background: #fff; color: #0f172a; box-shadow: -10px 0 24px rgba(2,6,23,0.12); transition: right .25s ease; z-index: 1000; padding: 16px; border-radius: 16px 0 0 16px; display: none; visibility: hidden; opacity: 0; transition: right .25s ease, opacity .25s ease; }
+    .side-menu.show { right: 0; display: block; visibility: visible; opacity: 1; }
+    .side-menu .menu-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .side-menu .menu-item:hover { background: #cbd5e1; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+    .confirm-btn { background: #ef4444; color: #fff; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .cancel-btn { background: #e2e8f0; color: #0f172a; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    /* Logout confirmation modal - matching DSR.html design */
+    #logoutOverlay.modal-overlay { position: fixed; inset: 0; background: rgba(14,17,17,.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    #logoutOverlay.modal-overlay.hidden { display: none; }
+    #logoutOverlay .modal-dialog { background: #fff; width: 90%; max-width: 360px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(14,17,17,.15); text-align: center; font-family: Helvetica, Arial, sans-serif !important; border: 0; }
+    #logoutOverlay .modal-dialog p { margin: 0 0 12px; color: #0e1111; font-weight: 600; font-family: Helvetica, Arial, sans-serif !important; }
+    #logoutOverlay .modal-actions .yes-btn { background: #ef4444; color: #fff; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    #logoutOverlay .modal-actions .no-btn { background: #e2e8f0; color: #0e1111; padding: 10px 14px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    /* Success Modal */
+    .success-modal-overlay { position: fixed; inset: 0; background: rgba(14,17,17,.5); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .success-modal-overlay.show { display: flex; }
+    .success-modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 32px 24px; box-shadow: 0 10px 40px rgba(14,17,17,.2); text-align: center; animation: scaleIn 0.3s ease; }
+    @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-icon { width: 72px; height: 72px; margin: 0 auto 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; }
+    .success-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+    .success-message { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .success-btn { background: #10b981; color: #fff; padding: 12px 32px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .success-btn:hover { background: #059669; }
+    /* Project List Modal */
+    .projects-modal-overlay { position: fixed; inset: 0; background: rgba(14,17,17,.6); display: none; align-items: center; justify-content: center; z-index: 10001; }
+    .projects-modal-overlay.show { display: flex; }
+    .projects-modal-dialog { background: #fff; width: 98%; max-width: 98%; border-radius: 12px; padding: 0; box-shadow: 0 10px 40px rgba(14,17,17,.3); display: flex; flex-direction: column; max-height: 90vh; }
+    .projects-modal-header { padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .projects-modal-header h2 { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; }
+    .projects-modal-close { background: transparent; border: 0; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+    .projects-modal-close:hover { background: #f1f5f9; color: #0f172a; }
+    .projects-modal-body { padding: 20px 24px; overflow-y: auto; overflow-x: hidden; flex: 1; min-height: 0; }
+    /* Project list table styles */
+    .table-wrapper { display: flex; flex-direction: column; width: 100%; align-items: center; }
+    .project-controls { margin-bottom: 12px; display: flex; gap: 12px; align-items: center; justify-content: flex-start; width: 100%; }
+    .project-controls input { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; max-width: 250px; }
+    .project-controls button { padding: 6px 12px; font-size: 13px; border-radius: 6px; }
+    .table-center { display: flex; justify-content: center; width: 100%; overflow-x: visible; }
+    .projects-table { width: 100%; margin: 0 auto; border-collapse: collapse; border: 2px solid #cbd5e1; border-top: 3px solid #2563eb; border-radius: 10px; overflow: hidden; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: 0 15px 50px rgba(2, 6, 23, 0.2); table-layout: auto; }
+    .projects-table th, .projects-table td { font-size: 13px; padding: 12px 16px; border: 1px solid #cbd5e1; text-align: left; vertical-align: middle; background: rgba(255, 255, 255, 0.4); }
+    .projects-table th { background: #0e1111; font-weight: 700; color: #fff; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 1; padding: 12px 16px; white-space: nowrap; }
+    .projects-table th:nth-child(1), .projects-table td:nth-child(1) { min-width: 120px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(2), .projects-table td:nth-child(2) { min-width: 130px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(3), .projects-table td:nth-child(3) { min-width: 150px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(4), .projects-table td:nth-child(4) { min-width: 200px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(5), .projects-table td:nth-child(5) { min-width: 120px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(6), .projects-table td:nth-child(6) { min-width: 150px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(7), .projects-table td:nth-child(7) { min-width: 100px; white-space: normal; word-wrap: break-word; }
+    .projects-table th:nth-child(8), .projects-table td:nth-child(8) { min-width: 140px; padding: 6px 8px !important; text-align: center; white-space: nowrap; }
+    .projects-table tbody tr:nth-child(odd) { background: rgba(248, 250, 252, 0.4); }
+    .projects-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.2); }
+    .projects-table tbody tr:hover { background-color: rgba(238, 242, 255, 0.5); }
+    .projects-table .actions-cell button { padding: 5px 9px; font-size: 11px; border-radius: 4px; margin: 0 3px 0 0; background: #e2e8f0; color: #0f172a; border: 0; cursor: pointer; font-weight: 600; }
+    .projects-table .actions-cell button:hover { background: #cbd5e1; }
+    /* Project form modals - History style */
+    .project-form-modal { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(14,17,17,.6); 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 10002; 
+      backdrop-filter: blur(2px);
+    }
+    .project-form-modal.show { display: flex; }
+    .project-form-dialog { 
+      background: #ffffff; 
+      width: 95%; 
+      max-width: 700px; 
+      max-height: 90vh; 
+      border-radius: 0; 
+      padding: 24px; 
+      box-shadow: 0 8px 32px rgba(14, 17, 17, 0.15); 
+      border: 3px solid #0e1111;
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden;
+    }
+    .project-form-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      padding-bottom: 12px; 
+      border-bottom: 3px solid #0e1111;
+    }
+    .project-form-header h2 { 
+      margin: 0; 
+      font-size: 26px; 
+      font-weight: 800; 
+      color: #0e1111;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .project-form-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+      padding: 4px;
+    }
+    .project-form-body::-webkit-scrollbar { 
+      width: 10px; 
+      height: 10px; 
+    }
+    .project-form-body::-webkit-scrollbar-track { 
+      background: #ffffff; 
+      border-left: 1px solid #0e1111; 
+    }
+    .project-form-body::-webkit-scrollbar-thumb { 
+      background: #0e1111; 
+      border-radius: 0; 
+      border: 1px solid #0e1111; 
+    }
+    .project-form-body::-webkit-scrollbar-thumb:hover { 
+      background: #1a1a1a; 
+    }
+    .form-group { 
+      margin-bottom: 16px; 
+    }
+    .form-group label { 
+      display: block; 
+      font-weight: 700; 
+      margin-bottom: 8px; 
+      font-size: 13px; 
+      color: #0e1111;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input { 
+      width: 100%; 
+      box-sizing: border-box; 
+      padding: 12px 16px; 
+      border: 2px solid #0e1111; 
+      border-radius: 0; 
+      font-size: 14px; 
+      background: #ffffff;
+      color: #0e1111;
+      font-weight: 400;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #0e1111;
+      box-shadow: inset 0 0 0 2px #0e1111, 0 0 0 3px rgba(14, 17, 17, 0.1);
+      background: #fafafa;
+    }
+    .form-group input:hover {
+      border-color: #1a1a1a;
+      background: #fafafa;
+    }
+    .form-group input:disabled { 
+      background-color: #f5f5f5; 
+      cursor: not-allowed; 
+      opacity: 0.7;
+      border-style: dashed;
+    }
+    .project-form-actions { 
+      display: flex; 
+      gap: 12px; 
+      justify-content: center; 
+      margin-top: 24px; 
+      padding-top: 20px;
+      border-top: 2px solid #0e1111;
+    }
+    .save-btn { 
+      background: #0e1111; 
+      color: #ffffff; 
+      padding: 14px 32px; 
+      border-radius: 0; 
+      border: 3px solid #0e1111; 
+      font-weight: 700; 
+      cursor: pointer; 
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(14, 17, 17, 0.2);
+    }
+    .save-btn:hover {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(14, 17, 17, 0.3);
+    }
+    .save-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(14, 17, 17, 0.2);
+    }
+    .cancel-btn { 
+      background: #ffffff; 
+      color: #0e1111; 
+      padding: 14px 32px; 
+      border-radius: 0; 
+      border: none; 
+      font-weight: 700; 
+      cursor: pointer; 
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cancel-btn:hover { 
+      background: #f5f5f5;
+    }
+    /* Draft notification modal */
+    .draft-modal-overlay { position: fixed; inset: 0; background: rgba(14,17,17,.6); display: none; align-items: center; justify-content: center; z-index: 10003; }
+    .draft-modal-overlay.show { display: flex; }
+    .draft-modal-content { background: #fff; width: 90%; max-width: 450px; border-radius: 12px; padding: 28px; box-shadow: 0 10px 40px rgba(14,17,17,.2); text-align: center; animation: slideDown 0.3s ease; }
+    @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .draft-modal-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; }
+    .draft-modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #0f172a; }
+    .draft-modal-message { font-size: 14px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+    .draft-modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .draft-btn-primary { background: #2563eb; color: #fff; padding: 12px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .draft-btn-primary:hover { background: #1d4ed8; }
+    .draft-btn-secondary { background: #e2e8f0; color: #0f172a; padding: 12px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+    .draft-btn-secondary:hover { background: #cbd5e1; }
+    /* Delete project modal */
+    .delete-project-modal { position: fixed; inset: 0; background: rgba(14,17,17,.5); display: none; align-items: center; justify-content: center; z-index: 10003; }
+    .delete-project-modal.show { display: flex; }
+    .delete-project-dialog { background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 40px rgba(14,17,17,.2); text-align: center; }
+    .delete-project-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; color: #0f172a; }
+    .delete-project-text { font-size: 14px; color: #64748b; margin-bottom: 24px; line-height: 1.5; }
+    .delete-project-actions { display: flex; gap: 10px; justify-content: center; }
+    .delete-project-confirm { background: #ef4444; color: #fff; padding: 10px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .delete-project-confirm:hover { background: #dc2626; }
+    .delete-project-cancel { background: #e2e8f0; color: #0f172a; padding: 10px 24px; border-radius: 8px; border: 0; font-weight: 700; cursor: pointer; }
+    .delete-project-cancel:hover { background: #cbd5e1; }
+    
+    /* ========================================
+       RESPONSIVE DESIGN - MOBILE & TABLET
+       ======================================== */
+    
+    /* Mobile devices (phones, up to 768px) */
+    @media screen and (max-width: 768px) {
+      /* Header adjustments */
+      .brand-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      .brand-header h1 {
+        font-size: 20px;
+        flex: 1;
+        min-width: 0;
+      }
+      .header-icons {
+        gap: 8px;
+      }
+      .burger-btn {
+        width: 24px;
+        height: 20px;
+      }
+      
+      
+      /* Container adjustments */
+      .container {
+        padding: 12px;
+        margin: 12px 0 0 0;
+      }
+      
+      /* Filters - stack vertically on mobile */
+      .filters {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 12px 0 16px;
+        max-width: 100%;
+      }
+      .filters input,
+      .filters select {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      
+      /* Table - make scrollable on mobile */
+      .table-center {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -12px;
+        padding: 0 12px;
+      }
+      table {
+        min-width: 800px;
+        font-size: 12px;
+        border: 2px solid #0e1111;
+      }
+      table th, table td {
+        padding: 12px 14px;
+        font-size: 11px;
+      }
+      table th {
+        font-size: 10px;
+        padding: 12px 14px;
+      }
+      /* Reduce column widths on mobile */
+      table th.col-id, table td.col-id {
+        width: 40px;
+        min-width: 40px;
+      }
+      .date-filter-wrapper {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .download-dropdown {
+        width: 100%;
+      }
+      .download-dropdown-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .download-dropdown-menu {
+        right: auto;
+        left: 0;
+        width: 100%;
+      }
+      table th:nth-child(2), table td:nth-child(2) { width: 80px; }
+      table th:nth-child(3), table td:nth-child(3) { width: 80px; }
+      table th:nth-child(4), table td:nth-child(4) { width: 90px; }
+      table th:nth-child(5), table td:nth-child(5) { width: 200px; }
+      table th:nth-child(6), table td:nth-child(6) { width: 90px; }
+      table th:nth-child(7), table td:nth-child(7) { width: 90px; }
+      table th:nth-child(8), table td:nth-child(8) { 
+        width: 180px; 
+        padding: 12px 14px;
+      }
+      table td:nth-child(8) .view-btn,
+      table td:nth-child(8) .delete-btn {
+        padding: 8px 14px;
+        font-size: 10px;
+        margin-right: 6px;
+      }
+      
+      /* Modals - full width on mobile */
+      .modal-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 16px;
+        margin: 10px;
+        max-height: 90vh;
+      }
+      .modal-header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .modal-body {
+        max-height: calc(90vh - 100px);
+        font-size: 13px;
+      }
+      
+      /* Projects modal */
+      .projects-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+      }
+      .projects-modal-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+      }
+      .projects-modal-header h2 {
+        font-size: 18px;
+      }
+      .projects-modal-body {
+        padding: 12px;
+        overflow-x: auto;
+      }
+      .projects-table {
+        min-width: 700px;
+        font-size: 11px;
+      }
+      .projects-table th,
+      .projects-table td {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+      .project-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .project-controls input {
+        max-width: 100%;
+        width: 100%;
+      }
+      .project-controls button {
+        width: 100%;
+      }
+      
+      /* Project form modals */
+      .project-form-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 16px;
+        margin: 10px;
+      }
+      .project-form-header h2 {
+        font-size: 18px;
+      }
+      .form-group {
+        margin-bottom: 14px;
+      }
+      .form-group input {
+        padding: 10px;
+        font-size: 14px;
+      }
+      .project-form-actions {
+        flex-direction: column;
+      }
+      .save-btn, .cancel-btn {
+        width: 100%;
+      }
+      
+      /* Draft modal */
+      .draft-modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+      }
+      .draft-modal-actions {
+        flex-direction: column;
+      }
+      .draft-btn-primary,
+      .draft-btn-secondary {
+        width: 100%;
+      }
+      
+      /* Delete project modal */
+      .delete-project-dialog {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+      }
+      .delete-project-actions {
+        flex-direction: column;
+      }
+      .delete-project-confirm,
+      .delete-project-cancel {
+        width: 100%;
+      }
+      
+      /* Side menu - full width on mobile */
+      .side-menu {
+        width: 100%;
+        right: -100%;
+        border-radius: 0;
+      }
+      
+      /* Success modal */
+      .success-modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 24px 16px;
+      }
+      .success-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 32px;
+      }
+      .success-title {
+        font-size: 18px;
+      }
+      .success-message {
+        font-size: 13px;
+      }
+      .success-btn {
+        width: 100%;
+        padding: 12px;
+      }
+      
+      /* Logout modal */
+      #logoutOverlay .modal-dialog {
+        width: 90%;
+        max-width: 90%;
+      }
+      .modal-actions {
+        flex-direction: column;
+      }
+      #logoutOverlay .modal-actions .yes-btn,
+      #logoutOverlay .modal-actions .no-btn {
+        width: 100%;
+      }
+    }
+    
+    /* Small mobile devices (phones, up to 480px) */
+    @media screen and (max-width: 480px) {
+      .brand-header h1 {
+        font-size: 18px;
+      }
+      .container {
+        padding: 8px;
+      }
+      h1 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+      table {
+        min-width: 700px;
+        font-size: 11px;
+      }
+      th, td {
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+      .modal-dialog {
+        padding: 12px;
+      }
+    }
+    
+    /* Tablet devices (768px to 1024px) */
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+      .container {
+        padding: 16px;
+      }
+      table {
+        max-width: 100%;
+      }
+      .filters {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+      .projects-modal-dialog {
+        width: 95%;
+        max-width: 95%;
+      }
+    }
+    
+    /* Touch-friendly buttons on mobile */
+    @media (hover: none) and (pointer: coarse) {
+      button {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .burger-btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      input, select, textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+    
+    /* ========================================
+       PRINT OPTIMIZATION
+       ======================================== */
+    @media print {
+      /* Hide non-essential elements */
+      .brand-header,
+      .header-icons,
+      .filters,
+      .download-dropdown,
+      .topbar,
+      .menu-overlay,
+      .side-menu,
+      .modal-overlay,
+      button,
+      .view-btn,
+      .delete-btn,
+      .burger-btn,
+      .print-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #0e1111;
+      }
+      .print-header .title-section {
+        flex: 1;
+      }
+      .print-header .title-section h1,
+      .print-header .title-section h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0e1111;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .print-header .title-section h1 {
+        margin-bottom: 4px;
+      }
+      .print-header .info-section {
+        text-align: right;
+        flex: 1;
+      }
+      .print-header .info-section .info-item {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0e1111;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+        line-height: 1.2;
+      }
+      .print-date {
+        display: none !important;
+      }
+      
+      /* Page setup - Match DSR format */
+      @page {
+        size: A4 landscape;
+        margin: 4mm;
+      }
+      
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white;
+        color: #0e1111;
+        font-size: 11pt;
+        font-family: Helvetica, Arial, sans-serif !important;
+      }
+      
+      .container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+        background: white;
+      }
+      
+      /* Optimize table for printing */
+      .table-center {
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+      }
+      
+      table {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: auto !important;
+        border: 2px solid #0e1111 !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto;
+        margin: 0;
+        font-size: 10pt;
+        background: white !important;
+        box-shadow: none !important;
+      }
+      
+      table thead {
+        display: table-header-group;
+      }
+      
+      table tbody {
+        display: table-row-group;
+      }
+      
+      table td {
+        padding: 8px 10px !important;
+        font-size: 10pt !important;
+        border: 1px solid #0e1111 !important;
+        background: white !important;
+        color: black !important;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.4;
+      }
+      
+      table th {
+        padding: 10px 8px !important;
+        font-size: 10pt !important;
+        border: 1px solid #0e1111 !important;
+        background: #0e1111 !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.4;
+        position: static !important;
+        page-break-after: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      table thead th {
+        background: #0e1111 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      table tbody tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+        border-bottom: 1px solid #0e1111 !important;
+        background: white !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+      
+      table tbody tr:nth-child(odd) {
+        background: white !important;
+      }
+      
+      table tbody tr:nth-child(even) {
+        background: #f9f9f9 !important;
+      }
+      
+      table tbody tr:hover {
+        background: #f9f9f9 !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+      
+      /* Optimize column widths for print - allow more space */
+      table th.col-id,
+      table td.col-id {
+        width: 50px !important;
+        min-width: 50px !important;
+        max-width: 50px !important;
+      }
+      
+      table th:nth-child(2),
+      table td:nth-child(2) {
+        width: 90px !important;
+        min-width: 90px !important;
+      }
+      
+      table th:nth-child(3),
+      table td:nth-child(3) {
+        width: 130px !important;
+        min-width: 130px !important;
+        white-space: normal !important;
+      }
+      
+      table th:nth-child(4),
+      table td:nth-child(4) {
+        width: 100px !important;
+        min-width: 100px !important;
+      }
+      
+      table th:nth-child(5),
+      table td:nth-child(5) {
+        width: auto !important;
+        min-width: 150px !important;
+        white-space: normal !important;
+        word-wrap: break-word;
+      }
+      
+      table th:nth-child(6),
+      table td:nth-child(6) {
+        width: 140px !important;
+        min-width: 140px !important;
+        white-space: normal !important;
+      }
+      
+      table th:nth-child(7),
+      table td:nth-child(7) {
+        width: 140px !important;
+        min-width: 140px !important;
+        white-space: normal !important;
+      }
+      
+      table th.no-print,
+      table th:nth-child(8),
+      table td:nth-child(8) {
+        display: none !important;
+      }
+      
+      /* Remove action column from print */
+      table td:last-child {
+        display: none !important;
+      }
+      
+      /* Print footer - Match DSR style */
+      .print-footer {
+        display: none !important;
+      }
+      
+      /* Show print date in print mode */
+      .print-date {
+        display: block !important;
+      }
+      
+      /* Ensure no page breaks inside rows */
+      table tr {
+        page-break-inside: avoid;
+      }
+      
+      /* Ensure table fits on page */
+      table {
+        page-break-inside: auto;
+      }
+      
+      table thead {
+        display: table-header-group;
+      }
+      
+      table tfoot {
+        display: table-footer-group;
+      }
+      
+      /* Prevent orphaned rows */
+      table tbody tr {
+        page-break-inside: avoid;
+      }
+      
+      /* Optimize text for print */
+      .muted {
+        color: #333 !important;
+      }
+    }
+  </style>
+  <!-- SheetJS library for Excel export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="auth.js"></script>
+  <script>
+    function qs(id){ return document.getElementById(id); }
+
+    // Map engineer codes to their initials (used in table display)
+    const engineerCodeToInitials = {
+      'EN001': 'JKC',
+      'EN002': 'RRM',
+      'EN003': 'VRG',
+      'EN004': 'JRM',
+      'EN005': 'RRP',
+      'EN007': 'RDB',
+      'EN008': 'ASO',
+      'EN009': 'AMM',
+      'EN010': 'MLL',
+      'EN011': 'PHC'
+    };
+
+    function formatEngineerName(engineerName) {
+      if (!engineerName) return 'N/A';
+      
+      const normalized = engineerName.replace(/[–—]/g, '-');
+      const codeMatch = normalized.match(/\bEN\d{3}\b/i);
+      if (!codeMatch) {
+        return normalized.trim();
+      }
+      
+      const code = codeMatch[0].toUpperCase();
+      let initials = engineerCodeToInitials[code];
+      
+      if (!initials && normalized.includes(' - ')) {
+        const [, rest] = normalized.split(' - ', 2);
+        initials = (rest.split('(')[0] || '').trim();
+      }
+      
+      if (!initials) {
+        initials = code;
+      }
+      
+      return `${code} - ${initials}`;
+    }
+
+    async function ensureAdmin() {
+      try {
+        if (!window.DSRAuth) {
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        }
+        
+        if (!DSRAuth.isLoggedIn()) {
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        }
+        
+        // Fast path: Check token role locally without API call
+        const token = DSRAuth.getToken();
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role === 'admin') {
+              return true; // Fast path - skip API call
+            }
+            if (payload.role !== 'admin') {
+              alert('Admin access required');
+              window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+              return false;
+            }
+          } catch (e) {
+            // Token decode failed, fall through to API check
+          }
+        }
+        
+        // Fallback: API verification only if token decode failed
+        try {
+          const me = await DSRAuth.me();
+          if (me && me.ok && me.authenticated && me.user && me.user.role === 'admin') {
+            return true;
+          }
+          alert('Admin access required');
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        } catch (apiError) {
+          // If API fails but we have valid admin token, allow access
+          if (token) {
+            try {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              if (payload.role === 'admin') {
+                return true;
+              }
+            } catch (_) {}
+          }
+          alert('Admin access required');
+          window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+          return false;
+        }
+      } catch (error) {
+        window.location.replace('login.html?redirect=' + encodeURIComponent('admin.html'));
+        return false;
+      }
+    }
+
+    function buildQuery(params) {
+      const sp = new URLSearchParams();
+      Object.entries(params).forEach(([k,v]) => { if (v) sp.set(k, v); });
+      const s = sp.toString();
+      return s ? ('?' + s) : '';
+    }
+
+    async function fetchReports() {
+      const engineer = qs('fEngineer').value.trim();
+      const project = qs('fProject').value.trim();
+      const df = qs('fFrom').value.trim();
+      const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+      const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/reports' + buildQuery({
+        engineer, project_code: project, date_from: df
+      });
+      const res = await fetch(url, { headers });
+      const isJson = (res.headers.get('content-type') || '').includes('application/json');
+      const data = isJson ? await res.json() : { ok: false };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || ('HTTP ' + res.status));
+      }
+      const items = data.items || [];
+      // Store reports data for Excel export
+      window.currentReportsData = items;
+      return items;
+    }
+
+    function renderRows(items) {
+      const tbody = qs('rows');
+      tbody.innerHTML = '';
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:20px;">No reports found</td></tr>';
+        return;
+      }
+      // Sort by date (newest first) - like History table
+      const sortedItems = [...items].sort((a, b) => {
+        const dateA = new Date(a.reportDate || 0);
+        const dateB = new Date(b.reportDate || 0);
+        return dateB - dateA;
+      });
+      for (let i = 0; i < sortedItems.length; i++) {
+        const r = sortedItems[i];
+        // Calculate on-site overtime for this report
+        const onSiteDuration = calculateOnSiteDuration(r.onSiteTimeIn, r.onSiteTimeOut);
+        const standardShiftMinutes = 9 * 60; // 9 hours
+        let overtimeText = 'N/A';
+        
+        if (onSiteDuration != null && onSiteDuration > standardShiftMinutes) {
+          const overtimeMinutes = onSiteDuration - standardShiftMinutes;
+          overtimeText = formatDuration(overtimeMinutes);
+        }
+        
+        const tr = document.createElement('tr');
+        const reportId = r.id != null ? r.id : '';
+        tr.innerHTML = `
+          <td class="col-id">${i + 1}</td>
+          <td>${escapeHtml(r.reportDate || '')}</td>
+          <td>${escapeHtml(formatEngineerName(r.engineerName))}</td>
+          <td>${escapeHtml(r.projectCode || '')}</td>
+          <td>${escapeHtml(r.projectName || '')}</td>
+          <td>${escapeHtml(r.onSiteTimeIn || '')} - ${escapeHtml(r.onSiteTimeOut || '')}</td>
+          <td>${escapeHtml(overtimeText)}</td>
+          <td style="white-space: nowrap;">
+            <button data-action="view" data-id="${escapeHtml(String(reportId))}" class="view-btn"${reportId === '' ? ' disabled' : ''}>View</button>
+            <button data-action="delete" data-id="${escapeHtml(String(reportId))}" class="delete-btn"${reportId === '' ? ' disabled' : ''}>Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+      tbody.querySelectorAll('button[data-action="view"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          if (id && id !== '' && id !== 'undefined' && id !== 'null') {
+            console.log('View button clicked for report ID:', id);
+            openDetail(id);
+          } else {
+            console.error('View button clicked but no valid data-id attribute found:', id);
+            alert('Error: Report ID not found or invalid');
+          }
+        });
+      });
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          if (id && id !== '' && id !== 'undefined' && id !== 'null') {
+            // Clean the ID to ensure it's just the numeric value
+            const cleanId = String(id).trim();
+            console.log('Delete button clicked for report ID:', cleanId);
+            confirmDeleteReport(cleanId);
+          } else {
+            console.error('Delete button clicked but no valid data-id attribute found:', id);
+            alert('Error: Report ID not found or invalid');
+          }
+        });
+      });
+    }
+
+    // Helper functions for time duration calculation
+    function parse12HourTime(timeStr) {
+      if (!timeStr || timeStr === 'N/A') return null;
+      const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!match) return null;
+      let hours = parseInt(match[1], 10);
+      const minutes = parseInt(match[2], 10);
+      const period = match[3].toUpperCase();
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
+      return hours * 60 + minutes;
+    }
+
+    function calculateDuration(time1, time2) {
+      const min1 = parse12HourTime(time1);
+      const min2 = parse12HourTime(time2);
+      if (min1 == null || min2 == null) return null;
+      let diff = min2 - min1;
+      if (diff < 0) diff += 24 * 60; // Handle overnight
+      return diff;
+    }
+
+    // Calculate on-site duration with lunch break deduction (12-1 PM)
+    function calculateOnSiteDuration(timeIn, timeOut) {
+      const min1 = parse12HourTime(timeIn);
+      const min2 = parse12HourTime(timeOut);
+      if (min1 == null || min2 == null) return null;
+      
+      let diff = min2 - min1;
+      if (diff < 0) diff += 24 * 60; // Handle overnight
+      
+      // Lunch break is 12:00 PM (720 minutes) to 1:00 PM (780 minutes)
+      const lunchStart = 12 * 60; // 720 minutes (12:00 PM)
+      const lunchEnd = 13 * 60;   // 780 minutes (1:00 PM)
+      
+      // Check if the on-site time spans across lunch break
+      // Case 1: Starts before lunch and ends after lunch
+      if (min1 < lunchStart && min2 > lunchEnd) {
+        diff -= 60; // Subtract 1 hour (60 minutes) for lunch break
+      }
+      // Case 2: Starts during lunch (12:00-1:00 PM)
+      else if (min1 >= lunchStart && min1 < lunchEnd) {
+        // If starts at 12:00 exactly, or anytime during lunch hour, adjust end time
+        if (min2 > lunchEnd) {
+          // Started during lunch, ended after lunch - subtract time from lunch start
+          diff = diff - (lunchEnd - min1);
+        }
+      }
+      // Case 3: Ends during lunch (12:00-1:00 PM)
+      else if (min2 > lunchStart && min2 <= lunchEnd) {
+        // Started before lunch, ended during lunch - subtract time until lunch start
+        if (min1 < lunchStart) {
+          diff = diff - (min2 - lunchStart);
+        }
+      }
+      
+      return diff >= 0 ? diff : 0; // Ensure non-negative
+    }
+
+    function formatDuration(minutes) {
+      if (minutes == null) return '';
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      const hLabel = hours === 1 ? 'hour' : 'hours';
+      const mLabel = mins === 1 ? 'minute' : 'minutes';
+      if (hours === 0) {
+        return `${mins} ${mLabel}`;
+      }
+      if (mins === 0) {
+        return `${hours} ${hLabel}`;
+      }
+      return `${hours} ${hLabel} ${mins} ${mLabel}`;
+    }
+
+    async function openDetail(id) {
+      try {
+        if (!id) {
+          console.error('openDetail: No report ID provided');
+          alert('Error: No report ID provided');
+          return;
+        }
+
+        // Check if DSRAuth is available
+        if (!window.DSRAuth) {
+          console.error('openDetail: DSRAuth not available');
+          alert('Error: Authentication system not loaded. Please refresh the page.');
+          return;
+        }
+
+        // Get auth headers safely
+        let headers = { 'Accept': 'application/json' };
+        try {
+          const authHeader = DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {};
+          if (authHeader && typeof authHeader === 'object') {
+            headers = Object.assign(headers, authHeader);
+          }
+        } catch (e) {
+          console.warn('openDetail: Error getting auth header:', e);
+        }
+
+        // Get API base URL safely
+        let apiBase = '';
+        try {
+          apiBase = DSRAuth.getApiBase ? DSRAuth.getApiBase() : '';
+          if (!apiBase || typeof apiBase !== 'string') {
+            apiBase = 'http://127.0.0.1:5000';
+          }
+        } catch (e) {
+          console.warn('openDetail: Error getting API base:', e);
+          apiBase = 'http://127.0.0.1:5000';
+        }
+
+        const url = apiBase + '/reports/' + encodeURIComponent(String(id));
+        console.log('openDetail: Fetching report from:', url);
+
+        let res;
+        try {
+          res = await fetch(url, { headers });
+        } catch (fetchError) {
+          console.error('openDetail: Fetch error:', fetchError);
+          alert('Error: Cannot connect to server. Please make sure the backend server is running.\n\n' + fetchError.message);
+          return;
+        }
+
+        if (!res || !res.ok) {
+          const errorMsg = res ? `HTTP ${res.status}` : 'Network error';
+          console.error('openDetail: Request failed:', errorMsg);
+          alert('Error loading report: ' + errorMsg);
+          return;
+        }
+
+        const isJson = (res.headers.get('content-type') || '').includes('application/json');
+        let data;
+        try {
+          data = isJson ? await res.json() : { ok: false };
+        } catch (parseError) {
+          console.error('openDetail: Error parsing response:', parseError);
+          alert('Error: Invalid response from server');
+          return;
+        }
+
+        if (!data || !data.ok || !data.item) {
+          const errorMsg = data ? (data.error || 'Unknown error') : 'No data received';
+          console.error('openDetail: Invalid response data:', data);
+          alert('Error loading report: ' + errorMsg);
+          return;
+        }
+
+        const r = data.item;
+        
+        // Calculate overtime based on on-site duration (beyond 9 hours)
+        // On-site duration with lunch break deduction (12-1 PM)
+        const onSiteDuration = calculateOnSiteDuration(r.onSiteTimeIn, r.onSiteTimeOut);
+        const standardShiftMinutes = 9 * 60; // 9 hours
+        let overtimeText = 'N/A';
+        
+        if (onSiteDuration != null && onSiteDuration > standardShiftMinutes) {
+          const overtimeMinutes = onSiteDuration - standardShiftMinutes;
+          overtimeText = formatDuration(overtimeMinutes);
+        }
+        
+        // Check if modal elements exist
+        const modal = qs('modal');
+        const mTitle = qs('mTitle');
+        const mBody = qs('mBody');
+        
+        if (!modal || !mTitle || !mBody) {
+          console.error('openDetail: Modal elements not found', { modal: !!modal, mTitle: !!mTitle, mBody: !!mBody });
+          alert('Error: Modal elements not found. Please refresh the page.');
+          return;
+        }
+
+        const formattedEngineerName = formatEngineerName(r.engineerName);
+        
+        // Wire up print button for this report
+        const printBtn = document.getElementById('modalPrintBtn');
+        if (printBtn) {
+          printBtn.style.display = 'inline-flex';
+          printBtn.onclick = () => printReportToPDF(r.id);
+        }
+        
+        mTitle.textContent = `Report #${r.id} — ${formattedEngineerName}`;
+        mBody.innerHTML = `
+        <div style="background: #fafafa; padding: 20px; border-radius: 0; margin-bottom: 20px; border: 2px solid #0e1111; border-left: 6px solid #0e1111;">
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Report Date:</strong><br><span style="color: #0e1111; margin-top: 4px; display: inline-block;">${r.reportDate || 'N/A'}</span></div>
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Engineer:</strong><br><span style="color: #0e1111; margin-top: 4px; display: inline-block;">${escapeHtml(formattedEngineerName)}</span></div>
+          </div>
+        </div>
+
+        <fieldset style="border: 2px solid #0e1111; border-radius: 0; padding: 20px; margin-bottom: 20px; background: #ffffff;">
+          <legend style="font-weight: 800; color: #0e1111; padding: 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; background: #ffffff; border: 2px solid #0e1111;">Project Information</legend>
+          <div style="display: grid; gap: 14px;">
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Project Phase:</strong> <span style="color: #0e1111; margin-left: 8px;">${escapeHtml(r.projectPhase || 'N/A')}</span></div>
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Project Code:</strong> <span style="color: #0e1111; margin-left: 8px;">${escapeHtml(r.projectCode || 'N/A')}</span></div>
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Project Name:</strong> <span style="color: #0e1111; margin-left: 8px;">${escapeHtml(r.projectName || 'N/A')}</span></div>
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Client Name:</strong> <span style="color: #0e1111; margin-left: 8px;">${escapeHtml(r.clientName || 'N/A')}</span></div>
+            <div><strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Plant Location:</strong> <span style="color: #0e1111; margin-left: 8px;">${escapeHtml(r.plantLocation || 'N/A')}</span></div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border: 2px solid #0e1111; border-radius: 0; padding: 20px; margin-bottom: 20px; background: #ffffff;">
+          <legend style="font-weight: 800; color: #0e1111; padding: 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; background: #ffffff; border: 2px solid #0e1111; font-family: Helvetica, Arial, sans-serif;">Time Details</legend>
+          <div style="display: flex; flex-direction: column; gap: 16px; font-family: Helvetica, Arial, sans-serif;">
+            <div>
+              <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px; font-family: Helvetica, Arial, sans-serif;">Travel Time to Plant Site</strong>
+              <div style="margin-left: 16px; display: flex; gap: 32px; align-items: baseline;">
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">Start:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.travelTimeToSite || 'N/A'}</span>
+                </div>
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">End:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.travelTimeFromSite || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px; font-family: Helvetica, Arial, sans-serif;">On-Site</strong>
+              <div style="margin-left: 16px; display: flex; gap: 32px; align-items: baseline;">
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">Start:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.onSiteTimeIn || 'N/A'}</span>
+                </div>
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">End:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.onSiteTimeOut || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px; font-family: Helvetica, Arial, sans-serif;">Travel Time to Home Base</strong>
+              <div style="margin-left: 16px; display: flex; gap: 32px; align-items: baseline;">
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">Start:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.travelTimeToHomeBase || 'N/A'}</span>
+                </div>
+                <div style="display: flex; align-items: baseline; min-width: 120px;">
+                  <strong style="color: #0e1111; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; width: 60px; font-family: Helvetica, Arial, sans-serif;">End:</strong> <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${r.travelTimeOut || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px; font-family: Helvetica, Arial, sans-serif;">Overtime</strong>
+              <div style="margin-left: 16px;">
+                <span style="color: #0e1111; font-family: Helvetica, Arial, sans-serif;">${overtimeText || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset style="border: 2px solid #0e1111; border-radius: 0; padding: 20px; margin-bottom: 20px; background: #ffffff;">
+          <legend style="font-weight: 800; color: #0e1111; padding: 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; background: #ffffff; border: 2px solid #0e1111;">Work Details</legend>
+          <div style="margin-bottom: 16px;">
+            <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Work Objective:</strong>
+            <div style="background: #ffffff; padding: 14px; border-radius: 0; border: 2px solid #0e1111; white-space: pre-wrap; color: #0e1111; line-height: 1.6;">${escapeHtml(r.workObjective || 'N/A')}</div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Description:</strong>
+            <div style="background: #ffffff; padding: 14px; border-radius: 0; border: 2px solid #0e1111; white-space: pre-wrap; color: #0e1111; line-height: 1.6;">${escapeHtml(r.description || 'N/A')}</div>
+          </div>
+          <div>
+            <strong style="color: #0e1111; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Outcome:</strong>
+            <div style="background: #ffffff; padding: 14px; border-radius: 0; border: 2px solid #0e1111; white-space: pre-wrap; color: #0e1111; line-height: 1.6;">${escapeHtml(r.outcome || 'N/A')}</div>
+          </div>
+        </fieldset>
+      `;
+        modal.classList.add('show');
+        console.log('openDetail: Modal shown successfully for report', id);
+      } catch (error) {
+        console.error('openDetail: Unexpected error:', error);
+        alert('An unexpected error occurred while loading the report:\n\n' + error.message);
+      }
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    
+    async function printReportToPDF(reportId) {
+      if (!reportId) {
+        alert('Report ID is missing');
+        return;
+      }
+      try {
+        // Get the modal content (header and body)
+        const modal = qs('modal');
+        const mTitle = qs('mTitle');
+        const mBody = qs('mBody');
+        
+        if (!modal || !mTitle || !mBody) {
+          alert('Report detail modal is not open. Please view the report first.');
+          return;
+        }
+        
+        // Get the header and body content
+        const headerContent = mTitle.innerHTML || mTitle.textContent || '';
+        const bodyContent = mBody.innerHTML || '';
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.style.visibility = 'hidden';
+        iframe.setAttribute('aria-hidden', 'true');
+
+        let printed = false;
+
+        iframe.addEventListener('load', () => {
+          if (printed) return;
+          printed = true;
+          setTimeout(() => {
+            try {
+              const frameWindow = iframe.contentWindow;
+              if (frameWindow) {
+                frameWindow.focus();
+                frameWindow.print();
+              } else {
+                throw new Error('Unable to access print window');
+              }
+            } catch (err) {
+              console.error('Print error:', err);
+              alert('Unable to start printing. Please try again.');
+            } finally {
+              setTimeout(() => {
+                if (iframe.parentNode) {
+                  iframe.parentNode.removeChild(iframe);
+                }
+              }, 200);
+            }
+          }, 50);
+        }, { once: true });
+
+        iframe.srcdoc = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>${headerContent}</title>
+            <style>
+              @media print {
+                @page {
+                  size: A4 portrait;
+                  margin: 5mm;
+                }
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                }
+              }
+              body {
+                margin: 0;
+                padding: 20px;
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 13px;
+                color: #0e1111;
+                background: #fff;
+              }
+              h2 {
+                margin: 0 0 20px 0;
+                font-size: 24px;
+                font-weight: 700;
+                color: #0e1111;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border-bottom: 2px solid #0e1111;
+                padding-bottom: 10px;
+              }
+              fieldset {
+                border: 2px solid #0e1111;
+                border-radius: 0;
+                padding: 20px;
+                margin-bottom: 20px;
+                background: #fff;
+                page-break-inside: avoid;
+              }
+              legend {
+                font-weight: 800;
+                color: #0e1111;
+                padding: 0 12px;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                background: #ffffff;
+                border: 2px solid #0e1111;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>${headerContent}</h2>
+            ${bodyContent}
+          </body>
+          </html>
+        `;
+
+        document.body.appendChild(iframe);
+      } catch (e) {
+        console.error('Error printing report:', e);
+        alert('Failed to prepare report for printing.');
+      }
+    }
+    
+    function closeModal() {
+      qs('modal').classList.remove('show');
+      const printBtn = document.getElementById('modalPrintBtn');
+      if (printBtn) {
+        printBtn.style.display = 'none';
+        printBtn.onclick = null;
+      }
+    }
+
+    async function doLogout(event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { if (btn) { btn.disabled = true; btn.textContent = 'Logging out...'; } } catch (_) {}
+      try {
+        // Best-effort server logout
+        if (window.DSRAuth && typeof DSRAuth.logout === 'function') await DSRAuth.logout();
+      } catch (_) {}
+      try { localStorage.removeItem('dsr_session'); } catch (_) {}
+      try { localStorage.removeItem('dsr_jwt_token'); } catch (_) {}
+      try { sessionStorage.removeItem('dsr_redirect_to'); } catch (_) {}
+      try { window.location.replace('login.html'); } catch (_) { window.location.href = 'login.html'; }
+    }
+
+    // Logout confirmation (admin)
+    window._logoutBtnRef = null;
+    function openLogoutConfirm(event, btn) {
+      try { if (event && typeof event.preventDefault === 'function') event.preventDefault(); } catch (_) {}
+      try { window._logoutBtnRef = btn || null; } catch (_) { window._logoutBtnRef = null; }
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+    }
+    function cancelLogout() {
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+    async function confirmLogout() {
+      const overlay = qs('logoutOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      try { await doLogout(null, window._logoutBtnRef); } catch (_) { await doLogout(null, null); }
+    }
+
+    // Delete report functionality
+    window._deleteReportId = null;
+    function confirmDeleteReport(reportId) {
+      if (!reportId) {
+        console.error('confirmDeleteReport called without reportId');
+        alert('Error: Report ID not found. Please try again.');
+        return;
+      }
+      console.log('Confirming deletion of report ID:', reportId);
+      window._deleteReportId = reportId;
+      const overlay = qs('deleteReportOverlay');
+      if (overlay) {
+        overlay.classList.add('show');
+      } else {
+        console.error('Delete report overlay not found in DOM');
+        alert('Error: Delete confirmation dialog not found. Please refresh the page.');
+      }
+    }
+
+    function cancelDeleteReport() {
+      window._deleteReportId = null;
+      const overlay = qs('deleteReportOverlay');
+      if (overlay) overlay.classList.remove('show');
+    }
+
+    async function executeDeleteReport() {
+      let reportId = window._deleteReportId;
+      if (!reportId) {
+        console.error('No report ID stored for deletion');
+        alert('Error: No report ID found. Please try again.');
+        return;
+      }
+
+      // Clean and parse report ID - ensure it's a valid integer
+      // Remove any non-numeric characters that might have been accidentally included
+      const cleanReportId = String(reportId).trim().replace(/[^0-9]/g, '');
+      if (!cleanReportId || isNaN(parseInt(cleanReportId, 10))) {
+        console.error('Invalid report ID:', reportId);
+        alert('Error: Invalid report ID. Please try again.');
+        cancelDeleteReport();
+        return;
+      }
+      
+      const numericReportId = parseInt(cleanReportId, 10);
+      console.log('Cleaned report ID:', numericReportId, '(original:', reportId, ')');
+
+      try {
+        // Ensure API base is available
+        let baseUrl = '';
+        if (window.DSRAuth && DSRAuth.getApiBase) {
+          baseUrl = DSRAuth.getApiBase();
+        }
+        if (!baseUrl) {
+          if (window.location.protocol === 'file:') {
+            baseUrl = 'http://127.0.0.1:5000';
+          } else {
+            baseUrl = window.location.origin;
+          }
+        }
+        
+        // Ensure URL doesn't have double slashes
+        const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+        const url = cleanBaseUrl + '/reports/' + numericReportId;
+        
+        console.log('Deleting report:', numericReportId, 'at URL:', url);
+        
+        const headers = Object.assign({ 'Accept': 'application/json' }, 
+          (window.DSRAuth && DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+        
+        const res = await fetch(url, { 
+          method: 'DELETE', 
+          headers,
+          credentials: 'omit'
+        });
+        
+        // Check if response is JSON before parsing
+        const contentType = res.headers.get('content-type') || '';
+        let data;
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          console.error('Non-JSON response:', text);
+          throw new Error(`Server returned non-JSON response (${res.status}): ${text.substring(0, 100)}`);
+        }
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || ('HTTP ' + res.status));
+        }
+
+        console.log('Report deleted successfully:', numericReportId);
+
+        // Close delete modal
+        cancelDeleteReport();
+
+        // Reload the reports list
+        await applyFilters();
+
+        // Show success modal
+        showSuccessModal('Report Deleted!', 'The report has been successfully deleted from the database.');
+      } catch (e) {
+        console.error('Error deleting report:', e);
+        cancelDeleteReport();
+        alert('Failed to delete report: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function showSuccessModal(title, message) {
+      qs('successTitle').textContent = title;
+      qs('successMessage').textContent = message;
+      qs('successModal').classList.add('show');
+      
+      // Auto-close after 3 seconds
+      setTimeout(() => {
+        closeSuccessModal();
+      }, 3000);
+    }
+
+    function closeSuccessModal() {
+      qs('successModal').classList.remove('show');
+    }
+
+    // (download dropdown removed)
+
+    // Excel Export Function
+    function exportToExcel() {
+      try {
+        // Check if we have data first
+        const reportsData = window.currentReportsData || [];
+        console.log('[Google Sheets Export] Current reports data:', reportsData);
+        console.log('[Google Sheets Export] Reports count:', reportsData.length);
+        
+        if (!reportsData || reportsData.length === 0) {
+          console.warn('[Google Sheets Export] No reports data available');
+          alert('No data to export. Please load reports first by applying filters.\n\nMake sure you have reports displayed in the table before exporting.');
+          return;
+        }
+
+        // Sort data the same way as the table (by date, newest first)
+        const sortedData = [...reportsData].sort((a, b) => {
+          const dateA = new Date(a.reportDate || 0);
+          const dateB = new Date(b.reportDate || 0);
+          return dateB - dateA; // Newest first (descending order)
+        });
+
+        // Prepare CSV data with headers
+        const csvRows = [];
+        
+        // Add headers
+        csvRows.push([
+          'ID',
+          'Date',
+          'Engineer',
+          'Project Code',
+          'Project Name',
+          'On-site Time In',
+          'On-site Time Out',
+          'Travel Time To Site',
+          'Travel Time From Site',
+          'Travel Time To Home Base',
+          'Travel Time Out'
+        ].join(','));
+
+        // Add data rows from sorted reports data
+        sortedData.forEach(r => {
+          // Escape commas and quotes in CSV values
+          const escapeCsv = (value) => {
+            if (value === null || value === undefined) return '';
+            const str = String(value);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+          };
+          
+          csvRows.push([
+            escapeCsv(r.id || ''),
+            escapeCsv(r.reportDate || ''),
+            escapeCsv(r.engineerName || ''),
+            escapeCsv(r.projectCode || ''),
+            escapeCsv(r.projectName || ''),
+            escapeCsv(r.onSiteTimeIn || ''),
+            escapeCsv(r.onSiteTimeOut || ''),
+            escapeCsv(r.travelTimeToSite || ''),
+            escapeCsv(r.travelTimeFromSite || ''),
+            escapeCsv(r.travelTimeToHomeBase || ''),
+            escapeCsv(r.travelTimeOut || '')
+          ].join(','));
+        });
+
+        // Combine all rows into CSV string
+        const csvContent = csvRows.join('\n');
+        
+        // Copy CSV to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(csvContent).then(() => {
+            // Open Google Sheets in new tab
+            window.open('https://docs.google.com/spreadsheets/create', '_blank');
+            
+            // Show success message with instructions
+            showSuccessModal(
+              'Opening Google Sheets!', 
+              `Data copied to clipboard!\n\nGoogle Sheets is opening in a new tab. Once it opens, press Ctrl+V (or Cmd+V on Mac) to paste the table data.`
+            );
+            
+            console.log(`[Google Sheets Export] Successfully copied ${reportsData.length} reports to clipboard and opened Google Sheets`);
+          }).catch(err => {
+            console.error('[Google Sheets Export] Failed to copy to clipboard:', err);
+            // Fallback: create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `DSR_Reports_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            // Open Google Sheets
+            window.open('https://docs.google.com/spreadsheets/create', '_blank');
+            
+            alert('Data exported as CSV file. Google Sheets is opening. You can import the CSV file into Google Sheets using File > Import.');
+          });
+        } else {
+          // Fallback for browsers without clipboard API
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `DSR_Reports_${new Date().toISOString().split('T')[0]}.csv`;
+          link.click();
+          URL.revokeObjectURL(url);
+          
+          // Open Google Sheets
+          window.open('https://docs.google.com/spreadsheets/create', '_blank');
+          
+          alert('CSV file downloaded. Google Sheets is opening. You can import the CSV file into Google Sheets using File > Import > Upload.');
+        }
+      } catch (error) {
+        console.error('[Google Sheets Export] Error:', error);
+        alert('Failed to export to Google Sheets: ' + (error.message || error));
+      }
+    }
+
+    function printReportsTable() {
+      // Update print date
+      const printDateEl = document.getElementById('printDate');
+      if (printDateEl) {
+        printDateEl.textContent = new Date().toLocaleString();
+      }
+      
+      // Show print header and footer (they're hidden by default, shown in print media)
+      const printHeader = document.getElementById('printHeader');
+      const printFooter = document.getElementById('printFooter');
+      
+      // Trigger print dialog
+      window.print();
+    }
+
+
+    async function applyFilters(event) {
+      if (event) event.preventDefault();
+      try {
+        const items = await fetchReports();
+        renderRows(items);
+      } catch (e) {
+        alert('Error loading reports: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!(await ensureAdmin())) return;
+      
+      // Setup event listeners and load data in parallel
+      document.querySelectorAll('.filters input').forEach(el => el.addEventListener('change', applyFilters));
+      qs('closeModal').addEventListener('click', closeModal);
+      
+      // Load reports immediately without waiting for user info
+      await applyFilters();
+      
+      // Setup click outside handler for download dropdown
+      
+      // Close menu and modals on ESC (project modals have priority)
+      document.addEventListener('keydown', (e) => { 
+        if (e.key === 'Escape') {
+          // Close download dropdown if open
+          closeDownloadDropdown();
+          
+          const addModal = qs('addProjectModal');
+          const deleteModal = qs('deleteProjectModal');
+          const draftModal = qs('draftModal');
+          const projectSuccessModal = qs('projectSuccessModal');
+          const projectsModal = qs('projectsModal');
+          
+          // Handle project modals first (most nested first)
+          if (addModal && addModal.classList.contains('show')) {
+            closeAddProjectModal();
+            e.stopPropagation();
+          } else if (deleteModal && deleteModal.classList.contains('show')) {
+            cancelDeleteProject();
+            e.stopPropagation();
+          } else if (draftModal && draftModal.classList.contains('show')) {
+            discardDraft();
+            e.stopPropagation();
+          } else if (projectSuccessModal && projectSuccessModal.classList.contains('show')) {
+            closeProjectSuccessModal();
+            e.stopPropagation();
+          } else if (projectsModal && projectsModal.classList.contains('show')) {
+            closeProjectsModal();
+            e.stopPropagation();
+          } else {
+            // If no project modals, close menu
+          closeMenu();
+          const successModal = qs('successModal');
+          if (successModal && successModal.classList.contains('show')) {
+            closeSuccessModal();
+            }
+          }
+        }
+      });
+      // Close modals on click outside
+      document.addEventListener('click', (e) => {
+        // Handle project modals first
+        const projectsModal = qs('projectsModal');
+        const addModal = qs('addProjectModal');
+        const deleteModal = qs('deleteProjectModal');
+        const projectSuccessModal = qs('projectSuccessModal');
+        const draftModal = qs('draftModal');
+        
+        if (projectsModal && projectsModal.classList.contains('show') && e.target === projectsModal) {
+          closeProjectsModal();
+          return;
+        }
+        if (addModal && addModal.classList.contains('show') && e.target === addModal) {
+          closeAddProjectModal();
+          return;
+        }
+        if (deleteModal && deleteModal.classList.contains('show') && e.target === deleteModal) {
+          cancelDeleteProject();
+          return;
+        }
+        if (projectSuccessModal && projectSuccessModal.classList.contains('show') && e.target === projectSuccessModal) {
+          closeProjectSuccessModal();
+          return;
+        }
+        if (draftModal && draftModal.classList.contains('show') && e.target === draftModal) {
+          discardDraft();
+          return;
+        }
+      });
+    });
+
+    function openMenu(){
+      const overlay = qs('sideOverlay');
+      const menu = qs('sideMenu');
+      if (overlay) overlay.classList.add('show');
+      if (menu) menu.classList.add('show');
+    }
+    function closeMenu(){
+      const overlay = qs('sideOverlay');
+      const menu = qs('sideMenu');
+      if (overlay) overlay.classList.remove('show');
+      if (menu) menu.classList.remove('show');
+    }
+    function toggleMenu(event){
+      if (event && event.preventDefault) event.preventDefault();
+      const menu = qs('sideMenu');
+      if (menu && menu.classList.contains('show')) { closeMenu(); } else { openMenu(); }
+    }
+
+    // Project List Modal Functions
+    let projects = [];
+    let isEditMode = false;
+    let editingProjectCode = null;
+    let projectToDelete = null;
+    let isLoadingProjects = false;
+    let currentSearchQuery = ''; // Store current search query to preserve filter on reload
+    let currentFetchTimeout = null; // Store timeout ID for cleanup
+
+    async function fetchProjectsFromBackend() {
+      // Initialize API base with default to avoid scope issues
+      let apiBase = 'http://127.0.0.1:5000'; // Default value
+      
+      try {
+        // Check if DSRAuth is loaded
+        if (typeof DSRAuth === 'undefined' || !DSRAuth) {
+          throw new Error('Authentication system not loaded. Please refresh the page.');
+        }
+        
+        const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+        
+        // Get API base with proper fallback
+        if (DSRAuth && DSRAuth.getApiBase) {
+          try {
+            const fetchedApiBase = DSRAuth.getApiBase();
+            if (fetchedApiBase && fetchedApiBase.trim() !== '' && fetchedApiBase !== '.') {
+              apiBase = fetchedApiBase;
+            }
+          } catch (e) {
+            console.warn('Error getting API base from DSRAuth:', e);
+          }
+        }
+        
+        // If API base is empty or invalid, use default localhost
+        if (!apiBase || apiBase.trim() === '' || apiBase === '.') {
+          // Try to determine API base from current location
+          try {
+            if (location.protocol === 'file:') {
+              apiBase = 'http://127.0.0.1:5000';
+            } else if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+              if (String(location.port) !== '5000') {
+                apiBase = 'http://127.0.0.1:5000';
+              } else {
+                apiBase = location.origin;
+              }
+            } else {
+              apiBase = 'http://127.0.0.1:5000';
+            }
+          } catch (_) {
+            apiBase = 'http://127.0.0.1:5000';
+          }
+          console.log('Using default API base:', apiBase);
+        }
+        
+        // Ensure API base doesn't have trailing slash
+        const cleanApiBase = apiBase.replace(/\/$/, '');
+        const url = cleanApiBase + '/projectdefs';
+        
+        // Add cache-busting parameter to ensure fresh data
+        const cacheBuster = '?_t=' + Date.now();
+        const fullUrl = url + cacheBuster;
+        
+        console.log('Fetching projects from:', fullUrl);
+        
+        // Create timeout abort controller - reduced to 10 seconds for faster feedback
+        const controller = new AbortController();
+        currentFetchTimeout = setTimeout(() => {
+          controller.abort();
+          currentFetchTimeout = null;
+        }, 10000); // 10 second timeout
+        
+        let res;
+        try {
+          res = await fetch(fullUrl, { 
+            headers,
+            cache: 'no-cache',
+            method: 'GET',
+            signal: controller.signal
+          });
+          if (currentFetchTimeout) {
+            clearTimeout(currentFetchTimeout);
+            currentFetchTimeout = null;
+          }
+        } catch (fetchError) {
+          if (currentFetchTimeout) {
+            clearTimeout(currentFetchTimeout);
+            currentFetchTimeout = null;
+          }
+          // If it's an abort error, it's a timeout
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Request timed out after 10 seconds. The server may be slow or unreachable. Please check if the backend server is running.');
+          }
+          // Re-throw other fetch errors
+          throw fetchError;
+        }
+        
+        // Check if response is ok before trying to parse JSON
+        if (!res.ok) {
+          let errorText = 'Unknown error';
+          try {
+            errorText = await res.text();
+            // Try to parse as JSON if possible
+            try {
+              const errorJson = JSON.parse(errorText);
+              errorText = errorJson.error || errorJson.message || errorText;
+            } catch (_) {
+              // Not JSON, use as-is
+            }
+          } catch (_) {
+            // Couldn't read error text
+          }
+          
+          // Provide specific error messages for common status codes
+          if (res.status === 400) {
+            throw new Error(`Bad Request (400): ${errorText || 'Invalid request. Please check your authentication and try again.'}`);
+          } else if (res.status === 401) {
+            throw new Error('Unauthorized (401): Please log in again.');
+          } else if (res.status === 403) {
+            throw new Error('Forbidden (403): You do not have permission to access this resource.');
+          } else if (res.status === 404) {
+            throw new Error('Not Found (404): The projects endpoint was not found. Please check the server configuration.');
+          } else if (res.status >= 500) {
+            throw new Error(`Server Error (${res.status}): ${errorText || 'The server encountered an error. Please try again later.'}`);
+          } else {
+            throw new Error(`Server error: ${res.status} ${res.statusText}. ${errorText}`);
+          }
+        }
+        
+        const data = await res.json();
+        if (!data.ok) {
+          throw new Error(data.error || 'Server returned an error');
+        }
+        return data.items || [];
+      } catch (e) {
+        // Provide more user-friendly error messages
+        if (e.name === 'AbortError' || (e.message && e.message.includes('timed out'))) {
+          throw new Error('Request timed out after 10 seconds. The server may be slow or unreachable. Please check your connection and try again.');
+        } else if (e.message && (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('ERR_'))) {
+          throw new Error('Unable to connect to server. Please ensure the backend server is running and accessible at ' + (apiBase || 'http://127.0.0.1:5000'));
+        } else if (e.message && e.message.includes('Bad Request')) {
+          // Already has a good error message from above
+          throw e;
+        } else if (e.message) {
+          throw e; // Re-throw with original message
+        } else {
+          throw new Error('Failed to load projects. Please try again.');
+        }
+      }
+    }
+
+    function openProjectsModal() {
+      qs('projectsModal').classList.add('show');
+      loadProjects();
+    }
+
+    function closeProjectsModal() {
+      qs('projectsModal').classList.remove('show');
+    }
+
+    // Force reload function that resets loading flag and ensures modal is open
+    function forceReloadProjects() {
+      // Clean up any existing timeout
+      if (currentFetchTimeout) {
+        clearTimeout(currentFetchTimeout);
+        currentFetchTimeout = null;
+      }
+      
+      // Reset loading flag to allow immediate reload even if previous call is still running
+      isLoadingProjects = false;
+      
+      // Ensure modal is open
+      const projectsModal = qs('projectsModal');
+      if (projectsModal) {
+        projectsModal.classList.add('show');
+      }
+      
+      // Force reload with error handling
+      loadProjects().catch(err => {
+        console.error('Error reloading projects:', err);
+        // Show error to user
+        const container = qs('projectsListContainer');
+        if (container) {
+          const errorMessage = err && err.message ? err.message : 'Failed to reload projects';
+          container.innerHTML = `<div style="text-align:center;padding:20px;color:#ef4444;">Error: ${escapeHtml(errorMessage)}</div>`;
+        }
+      });
+    }
+
+    // Make loadProjects globally accessible for retry button
+    window.loadProjects = async function loadProjects() {
+      // Prevent concurrent calls - if already loading, wait for current call to finish
+      if (isLoadingProjects) {
+        console.log('loadProjects() already in progress, waiting for current call to complete...');
+        // Wait a bit and check again, or just return to avoid duplicate calls
+        return;
+      }
+      
+      const container = qs('projectsListContainer');
+      if (!container) {
+        console.error('Projects list container not found');
+        return;
+      }
+      
+      // Re-check modal state right before showing loading to avoid stale state
+      const projectsModal = qs('projectsModal');
+      const isModalOpen = projectsModal && projectsModal.classList.contains('show');
+      
+      // Only proceed if modal is open
+      if (!isModalOpen) {
+        // If modal is not open, don't modify container and return early
+        // This prevents showing loading state when modal is closed (e.g., during draft save/exit)
+        return;
+      }
+      
+      isLoadingProjects = true;
+      
+      try {
+        // Show loading state only if modal is confirmed open
+        container.innerHTML = '<div style="text-align:center;padding:20px;">Loading projects...</div>';
+        
+        // Force fresh fetch with cache busting
+        try {
+          projects = await fetchProjectsFromBackend();
+          console.log('Loaded projects:', projects.length);
+        } catch (e) {
+          // Always clear loading state and show error
+          const currentModal = qs('projectsModal');
+          const errorMessage = e && e.message ? e.message : 'Failed to load projects';
+          
+          console.error('Error loading projects:', e);
+          
+          if (currentModal && currentModal.classList.contains('show')) {
+            // Show user-friendly error message in the container
+            projects = []; // Reset projects array
+            
+            // Create error container with retry button
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'text-align:center;padding:30px;color:#ef4444;';
+            errorDiv.innerHTML = `
+              <div style="font-size:16px;font-weight:600;margin-bottom:10px;">Error Loading Projects</div>
+              <div style="font-size:13px;color:#dc2626;margin-bottom:15px;">${escapeHtml(errorMessage)}</div>
+              <button id="retryLoadProjects" style="background:#2563eb;color:#fff;border:0;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-top:10px;">Retry</button>
+            `;
+            container.innerHTML = '';
+            container.appendChild(errorDiv);
+            
+            // Attach event listener to retry button
+            const retryBtn = document.getElementById('retryLoadProjects');
+            if (retryBtn) {
+              retryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Retry button clicked, reloading projects...');
+                loadProjects().catch(err => {
+                  console.error('Retry failed:', err);
+                });
+              });
+            }
+            // Also show alert for critical errors
+            if (errorMessage.includes('Unable to connect') || errorMessage.includes('timed out')) {
+              alert('Connection Error: ' + errorMessage + '\n\nPlease ensure the backend server is running.');
+            }
+          } else {
+            // Modal was closed, clear loading state
+            if (container && container.innerHTML.includes('Loading projects')) {
+              container.innerHTML = '';
+            }
+          }
+          return; // Exit early on fetch error, finally block will reset flag
+        }
+      
+        // Check if modal is still open before rendering (it might have been closed during fetch)
+        // Re-check modal state after async operation
+        const currentModal = qs('projectsModal');
+        if (!currentModal || !currentModal.classList.contains('show')) {
+          // Modal was closed, clear loading state to prevent stuck "Loading projects..." message
+          if (container) {
+            container.innerHTML = '';
+          }
+          return; // Modal was closed, don't render - finally block will reset flag
+        }
+      
+      // Clear container again before rendering (ensure loading state is cleared)
+      // This also removes any old event listeners since we're replacing the entire content
+      container.innerHTML = '';
+
+      const tableWrapper = document.createElement('div');
+      tableWrapper.className = 'table-wrapper';
+
+      const topBar = document.createElement('div');
+      topBar.className = 'project-controls';
+      topBar.innerHTML = `
+        <input id="searchInput" type="text" placeholder="Search projects..." style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:13px;max-width:300px;">
+        <button id="addProjectBtn" style="background:#2563eb;color:#fff;border:0;font-weight:600;cursor:pointer;padding:6px 12px;font-size:13px;border-radius:6px;">+ Add Project</button>
+      `;
+      tableWrapper.appendChild(topBar);
+
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'table-center';
+      const table = document.createElement('table');
+      table.className = 'projects-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Project Code</th>
+            <th>PO/Start Date</th>
+            <th>Client</th>
+            <th>Project Name</th>
+            <th>Industry</th>
+            <th>Location</th>
+            <th>PIC</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+      
+      // Store filtered projects for search functionality
+      // Preserve current search query if it exists
+      let filteredProjects = projects;
+      if (currentSearchQuery) {
+        filteredProjects = projects.filter(p => 
+          (p.code + ' ' + p.name + ' ' + p.client + ' ' + p.location).toLowerCase().includes(currentSearchQuery)
+        );
+      }
+      
+      function renderRows(rows) {
+        tbody.innerHTML = '';
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:20px;">No projects found</td></tr>';
+          return;
+        }
+        
+        // Use DocumentFragment for better performance when adding multiple rows
+        const fragment = document.createDocumentFragment();
+        for (const p of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(p.code)}</td>
+            <td>${escapeHtml(p.startDate)}</td>
+            <td>${escapeHtml(p.client)}</td>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${escapeHtml(p.industry)}</td>
+            <td>${escapeHtml(p.location)}</td>
+            <td>${escapeHtml(p.pic)}</td>
+            <td class="actions-cell"><button data-act="delete" data-code="${escapeHtml(p.code)}">Delete</button><button data-act="edit" data-code="${escapeHtml(p.code)}">Edit</button></td>
+          `;
+          fragment.appendChild(tr);
+        }
+        tbody.appendChild(fragment);
+      }
+      
+      // Use event delegation on tableWrapper to handle all button clicks
+      // This is more robust and handles dynamically added buttons
+      tableWrapper.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-act]');
+        if (btn) {
+          const action = btn.getAttribute('data-act');
+          const code = btn.getAttribute('data-code');
+          if (action === 'edit') {
+            editProject(code);
+          } else if (action === 'delete') {
+            deleteProject(code);
+          }
+        }
+      });
+      
+      renderRows(projects);
+      tableWrap.appendChild(table);
+      tableWrapper.appendChild(tableWrap);
+      
+      // Final check: only append if modal is still open (re-check after async operations)
+      const finalModalCheck = qs('projectsModal');
+      if (finalModalCheck && finalModalCheck.classList.contains('show')) {
+        // Clear any loading state and append table
+        container.innerHTML = '';
+        try {
+          container.appendChild(tableWrapper);
+        } catch (err) {
+          console.error('Error appending table:', err);
+          container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error rendering projects table</div>';
+          return;
+        }
+      } else {
+        // Modal was closed, clear loading state to prevent stuck "Loading projects..." message
+        if (container && container.innerHTML.includes('Loading projects')) {
+          container.innerHTML = '';
+        }
+        return; // Modal was closed, don't set up event listeners
+      }
+      
+      // Set up search functionality
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        // Since we create new elements each time, we can directly add the listener
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.trim().toLowerCase();
+          currentSearchQuery = query; // Store the query globally
+          if (query) {
+            filteredProjects = projects.filter(p => 
+              (p.code + ' ' + p.name + ' ' + p.client + ' ' + p.location).toLowerCase().includes(query)
+            );
+          } else {
+            filteredProjects = projects;
+          }
+          renderRows(filteredProjects);
+        });
+        
+        // Restore search query if it exists
+        if (currentSearchQuery) {
+          searchInput.value = currentSearchQuery;
+        }
+      }
+
+      // Set up add project button - use event delegation on tableWrapper for consistency
+      const addBtn = document.getElementById('addProjectBtn');
+      if (addBtn) {
+        addBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openAddProjectModal();
+        });
+      }
+      } catch (err) {
+        console.error('Error in loadProjects:', err);
+        // Ensure loading state is cleared on error
+        const errorContainer = qs('projectsListContainer');
+        if (errorContainer) {
+          if (errorContainer.innerHTML.includes('Loading projects')) {
+            errorContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error loading projects. Please try again.</div>';
+          }
+        }
+      } finally {
+        // Clean up timeout if still active
+        if (currentFetchTimeout) {
+          clearTimeout(currentFetchTimeout);
+          currentFetchTimeout = null;
+        }
+        
+        // Always reset the loading flag
+        isLoadingProjects = false;
+        // Safety: Clear loading state if it's still showing (defensive programming)
+        const safetyContainer = qs('projectsListContainer');
+        const safetyModal = qs('projectsModal');
+        if (safetyContainer && safetyModal && !safetyModal.classList.contains('show')) {
+          // Modal is closed but container might still show loading - clear it
+          if (safetyContainer.innerHTML.includes('Loading projects')) {
+            console.log('Safety: Clearing stuck loading state');
+            safetyContainer.innerHTML = '';
+          }
+        }
+      }
+    }
+
+    function openAddProjectModal() {
+      isEditMode = false;
+      editingProjectCode = null;
+      qs('projectCode').disabled = false;
+      const draft = loadDraft();
+      if (draft) {
+        showDraftNotification(draft);
+      } else {
+        clearFormFields();
+        openProjectFormModal();
+      }
+    }
+
+    function openProjectFormModal() {
+      qs('projectModalTitle').textContent = 'PROJECT DETAILS - ADD NEW';
+      qs('addProjectModal').classList.add('show');
+      enableDraftAutoSave();
+    }
+
+    function showDraftNotification(draft) {
+      qs('draftModal').classList.add('show');
+    }
+
+    function useDraftData() {
+      if (isEditMode) {
+        useEditDraftData();
+      } else {
+        const draft = loadDraft();
+        if (draft) {
+          qs('projectCode').value = draft.code || '';
+          qs('startDate').value = draft.startDate || '';
+          qs('clientName').value = draft.client || '';
+          qs('projectName').value = draft.name || '';
+          qs('industry').value = draft.industry || '';
+          qs('location').value = draft.location || '';
+          qs('pic').value = draft.pic || '';
+        }
+        qs('draftModal').classList.remove('show');
+        openProjectFormModal();
+      }
+    }
+
+    function discardDraft() {
+      if (isEditMode) {
+        discardEditDraft();
+      } else {
+        clearDraft();
+        clearFormFields();
+        qs('draftModal').classList.remove('show');
+        openProjectFormModal();
+      }
+    }
+
+    function clearFormFields() {
+      qs('projectCode').value = '';
+      qs('startDate').value = '';
+      qs('clientName').value = '';
+      qs('projectName').value = '';
+      qs('industry').value = '';
+      qs('location').value = '';
+      qs('pic').value = '';
+    }
+
+    function editProject(code) {
+      const project = projects.find(p => p.code === code);
+      if (!project) {
+        alert('Project not found!');
+        return;
+      }
+      isEditMode = true;
+      editingProjectCode = code;
+      qs('projectCode').disabled = true;
+      // Clear any existing edit draft to start fresh with current project data
+      clearEditDraft(code);
+      // Load the current project data into the form
+      loadProjectDataToForm(project);
+      // Open the edit form modal
+      openEditFormModal();
+      // Keep projects modal open in background - don't close it
+      // This ensures we can return to the project list after editing
+    }
+
+    function loadProjectDataToForm(project) {
+      qs('projectCode').value = project.code;
+      qs('startDate').value = project.startDate;
+      qs('clientName').value = project.client;
+      qs('projectName').value = project.name;
+      qs('industry').value = project.industry;
+      qs('location').value = project.location;
+      qs('pic').value = project.pic;
+    }
+
+    function openEditFormModal() {
+      qs('projectModalTitle').textContent = 'PROJECT DETAILS - EDIT';
+      qs('addProjectModal').classList.add('show');
+      enableDraftAutoSave();
+    }
+
+    function showEditDraftNotification(draft, originalProject) {
+      window.originalProjectBeforeEdit = originalProject;
+      qs('draftModal').classList.add('show');
+    }
+
+    function useEditDraftData() {
+      const draft = loadEditDraft(editingProjectCode);
+      if (draft) {
+        qs('projectCode').value = draft.code;
+        qs('startDate').value = draft.startDate || '';
+        qs('clientName').value = draft.client || '';
+        qs('projectName').value = draft.name || '';
+        qs('industry').value = draft.industry || '';
+        qs('location').value = draft.location || '';
+        qs('pic').value = draft.pic || '';
+      }
+      qs('draftModal').classList.remove('show');
+      openEditFormModal();
+    }
+
+    function discardEditDraft() {
+      const project = projects.find(p => p.code === editingProjectCode);
+      if (project) {
+        loadProjectDataToForm(project);
+      }
+      clearEditDraft(editingProjectCode);
+      qs('draftModal').classList.remove('show');
+      openEditFormModal();
+    }
+
+    function deleteProject(code) {
+      const project = projects.find(p => p.code === code);
+      if (!project) {
+        showProjectSuccessModal('Error', 'Project not found!');
+        return;
+      }
+      projectToDelete = { code: code, name: project.name };
+      qs('deleteProjectText').innerHTML = `Are you sure you want to delete project<br><strong>"${escapeHtml(project.name)}"</strong><br>(${escapeHtml(code)})?`;
+      qs('deleteProjectModal').classList.add('show');
+    }
+
+    async function confirmDeleteProject() {
+      if (projectToDelete) {
+        try {
+          const headers = Object.assign({ 'Accept': 'application/json' }, (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {}));
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs/' + encodeURIComponent(projectToDelete.code);
+          const res = await fetch(url, { method: 'DELETE', headers });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          qs('deleteProjectModal').classList.remove('show');
+          
+          // Optimistically remove the project from local array for instant UI update
+          const deletedIndex = projects.findIndex(p => p.code === projectToDelete.code);
+          if (deletedIndex !== -1) {
+            projects.splice(deletedIndex, 1);
+          }
+          
+          // Wait a moment for DB commit before reloading to prevent timeout
+          setTimeout(() => {
+            forceReloadProjects();
+          }, 150); // 150ms delay to allow database transaction to commit
+          
+          // No popup - table reloads directly showing updated list
+          projectToDelete = null;
+        } catch (e) {
+          qs('deleteProjectModal').classList.remove('show');
+          alert('Failed to delete project: ' + (e && e.message ? e.message : String(e)));
+          projectToDelete = null;
+        }
+      }
+    }
+
+    function cancelDeleteProject() {
+      qs('deleteProjectModal').classList.remove('show');
+      projectToDelete = null;
+    }
+
+    async function closeAddProjectModal() {
+      const wasEditMode = isEditMode;
+      const wasEditingCode = editingProjectCode;
+      
+      qs('addProjectModal').classList.remove('show');
+      
+      const hasContent = qs('projectCode').value.trim() || 
+                        qs('startDate').value.trim() || 
+                        qs('clientName').value.trim() || 
+                        qs('projectName').value.trim() || 
+                        qs('industry').value.trim() || 
+                        qs('location').value.trim() || 
+                        qs('pic').value.trim();
+      
+      if (hasContent) {
+        if (isEditMode && editingProjectCode) {
+          saveEditDraft(editingProjectCode);
+        } else {
+          saveDraft();
+        }
+      }
+      
+      isEditMode = false;
+      editingProjectCode = null;
+      
+      // If we were in edit mode, ensure projects modal is open and refresh the table
+      if (wasEditMode) {
+        const projectsModal = qs('projectsModal');
+        if (projectsModal) {
+          // Always open projects modal to return to project list
+          projectsModal.classList.add('show');
+          // Refresh the projects table
+          await loadProjects();
+        }
+      }
+    }
+
+    function saveDraft() {
+      const draft = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      const hasContent = Object.values(draft).some(val => val && val !== draft.timestamp);
+      if (hasContent) {
+        localStorage.setItem('projectDraft', JSON.stringify(draft));
+      }
+    }
+
+    function loadDraft() {
+      try {
+        const draftStr = localStorage.getItem('projectDraft');
+        if (draftStr) {
+          return JSON.parse(draftStr);
+        }
+      } catch (e) {
+        console.error('Error loading draft:', e);
+      }
+      return null;
+    }
+
+    function clearDraft() {
+      localStorage.removeItem('projectDraft');
+    }
+
+    function saveEditDraft(projectCode) {
+      const draft = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      const hasContent = Object.values(draft).some(val => val && val !== draft.timestamp);
+      if (hasContent) {
+        localStorage.setItem(`projectEditDraft_${projectCode}`, JSON.stringify(draft));
+      }
+    }
+
+    function loadEditDraft(projectCode) {
+      try {
+        const draftStr = localStorage.getItem(`projectEditDraft_${projectCode}`);
+        if (draftStr) {
+          return JSON.parse(draftStr);
+        }
+      } catch (e) {
+        console.error('Error loading edit draft:', e);
+      }
+      return null;
+    }
+
+    function clearEditDraft(projectCode) {
+      localStorage.removeItem(`projectEditDraft_${projectCode}`);
+    }
+
+    function enableDraftAutoSave() {
+      const fields = ['projectCode', 'startDate', 'clientName', 'projectName', 'industry', 'location', 'pic'];
+      fields.forEach(fieldId => {
+        const field = qs(fieldId);
+        if (field) {
+          const newField = field.cloneNode(true);
+          field.parentNode.replaceChild(newField, field);
+          
+          newField.addEventListener('input', () => {
+            if (isEditMode && editingProjectCode) {
+              saveEditDraft(editingProjectCode);
+            } else if (!isEditMode) {
+              saveDraft();
+            }
+          });
+        }
+      });
+    }
+
+    async function saveProject() {
+      const projectData = {
+        code: qs('projectCode').value.trim(),
+        startDate: qs('startDate').value.trim(),
+        client: qs('clientName').value.trim(),
+        name: qs('projectName').value.trim(),
+        industry: qs('industry').value.trim(),
+        location: qs('location').value.trim(),
+        pic: qs('pic').value.trim()
+      };
+
+      if (!projectData.code || !projectData.startDate || !projectData.client || !projectData.name || !projectData.industry || !projectData.location || !projectData.pic) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const headers = Object.assign(
+          { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          (DSRAuth.getAuthHeader ? DSRAuth.getAuthHeader() : {})
+        );
+
+        if (isEditMode) {
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs/' + encodeURIComponent(editingProjectCode);
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify(projectData)
+          });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          clearEditDraft(editingProjectCode);
+          
+          // Close the edit modal and reset edit mode first
+          qs('addProjectModal').classList.remove('show');
+          isEditMode = false;
+          editingProjectCode = null;
+          
+          // Optimistically update the local projects array for instant UI update
+          // Use editingProjectCode (old code) to find the project, not projectData.code (which might have changed)
+          const projectIndex = projects.findIndex(p => p.code === editingProjectCode);
+          if (projectIndex !== -1) {
+            projects[projectIndex] = { ...projects[projectIndex], ...projectData };
+          }
+          
+          // Wait a moment for DB commit before reloading to prevent timeout
+          setTimeout(() => {
+            forceReloadProjects();
+          }, 150); // 150ms delay to allow database transaction to commit
+          
+          // No popup - table reloads directly showing updated project
+          // Scroll to and highlight the updated project (reduced delay for faster response)
+          setTimeout(() => {
+            const tbody = document.querySelector('.projects-table tbody');
+            if (tbody) {
+              const rows = tbody.querySelectorAll('tr');
+              // Use the project code from the saved data to find the row
+              const projectCode = projectData.code;
+              for (const row of rows) {
+                const codeCell = row.querySelector('td:first-child');
+                if (codeCell && codeCell.textContent.trim() === projectCode) {
+                  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  row.style.backgroundColor = 'rgba(37, 99, 235, 0.2)';
+                  setTimeout(() => {
+                    row.style.backgroundColor = '';
+                  }, 2000);
+                  break;
+                }
+              }
+            }
+          }, 50); // Reduced from 200ms to 50ms for faster response
+        } else {
+          const url = (DSRAuth.getApiBase ? DSRAuth.getApiBase() : '') + '/projectdefs';
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(projectData)
+          });
+          const data = await res.json();
+          
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || ('HTTP ' + res.status));
+          }
+          
+          clearDraft();
+          // Close the add modal first
+          qs('addProjectModal').classList.remove('show');
+          isEditMode = false;
+          editingProjectCode = null;
+          
+          // Optimistically add the new project to local array for instant UI update
+          projects.push({ ...projectData });
+          
+          // Wait a moment for DB commit before reloading to prevent timeout
+          setTimeout(() => {
+            forceReloadProjects();
+          }, 150); // 150ms delay to allow database transaction to commit
+          
+          // No popup - table reloads directly showing new project
+          // Scroll to and highlight the newly added project (reduced delay for faster response)
+          setTimeout(() => {
+            const tbody = document.querySelector('.projects-table tbody');
+            if (tbody) {
+              const rows = tbody.querySelectorAll('tr');
+              for (const row of rows) {
+                const codeCell = row.querySelector('td:first-child');
+                if (codeCell && codeCell.textContent.trim() === projectData.code) {
+                  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  row.style.backgroundColor = 'rgba(37, 99, 235, 0.2)';
+                  setTimeout(() => {
+                    row.style.backgroundColor = '';
+                  }, 2000);
+                  break;
+                }
+              }
+            }
+          }, 50); // Reduced from 200ms to 50ms for faster response
+        }
+      } catch (e) {
+        alert('Failed to save project: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function showProjectSuccessModal(title, message) {
+      qs('projectSuccessTitle').textContent = title;
+      qs('projectSuccessMessage').textContent = message;
+      qs('projectSuccessModal').classList.add('show');
+      setTimeout(() => {
+        closeProjectSuccessModal();
+        // Safety check: if projects modal is open but stuck in loading state, fix it
+        const container = qs('projectsListContainer');
+        const projectsModal = qs('projectsModal');
+        if (container && projectsModal && projectsModal.classList.contains('show')) {
+          // If stuck in loading state and we have projects data, re-render
+          if (container.innerHTML.includes('Loading projects') && projects && Array.isArray(projects)) {
+            const tableWrapper = container.querySelector('.table-wrapper');
+            if (!tableWrapper) {
+              // Only reload if there's no table rendered
+              loadProjects().catch(err => {
+                console.error('Error reloading projects after success modal:', err);
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;">Error loading projects. Please refresh.</div>';
+              });
+            }
+          }
+        }
+      }, 3000);
+    }
+
+    function closeProjectSuccessModal() {
+      qs('projectSuccessModal').classList.remove('show');
+      // Ensure projects modal remains open and visible after success modal closes
+      const projectsModal = qs('projectsModal');
+      if (projectsModal) {
+        projectsModal.classList.add('show');
+      }
+    }
+
+    // Close project modals when clicking outside (only if modal overlay is clicked, not content)
+    window.addEventListener('click', (e) => {
+      const projectsModal = qs('projectsModal');
+      const addModal = qs('addProjectModal');
+      const deleteModal = qs('deleteProjectModal');
+      const successModal = qs('projectSuccessModal');
+      const draftModal = qs('draftModal');
+      
+      if (projectsModal && projectsModal.classList.contains('show') && e.target === projectsModal) {
+        closeProjectsModal();
+      } else if (addModal && addModal.classList.contains('show') && e.target === addModal) {
+        closeAddProjectModal();
+      } else if (deleteModal && deleteModal.classList.contains('show') && e.target === deleteModal) {
+        cancelDeleteProject();
+      } else if (successModal && successModal.classList.contains('show') && e.target === successModal) {
+        closeProjectSuccessModal();
+      } else if (draftModal && draftModal.classList.contains('show') && e.target === draftModal) {
+        discardDraft();
+      }
+    });
+
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+</head>
+<body>
+  <div class="brand-header">
+    <h1>dot[X].solutions</h1>
+    <div class="header-icons">
+      <button id="menuBtn" class="burger-btn" aria-label="Menu" title="Menu" onclick="toggleMenu(event)">
+        <span class="line"></span>
+        <span class="line"></span>
+        <span class="line"></span>
+      </button>
+    </div>
+  </div>
+  
+  <div id="sideOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+  <nav id="sideMenu" class="side-menu">
+    <div class="menu-item" onclick="closeMenu(); openProjectsModal()">Project List</div>
+    <div class="menu-item" onclick="closeMenu(); openLogoutConfirm(event, this)" style="color:#ef4444;font-weight:600;">Logout</div>
+  </nav>
+  <div class="container">
+    <div class="topbar">
+      <h1>Admin — Daily Service Reports</h1>
+    </div>
+
+    <div class="filters">
+      <input id="fEngineer" type="text" placeholder="Engineer name">
+      <input id="fProject" type="text" placeholder="Project code">
+      <div class="date-filter-wrapper">
+        <input id="fFrom" type="date" placeholder="From date">
+      </div>
+    </div>
+    
+
+    <div class="table-center">
+      <div id="printHeader" class="print-header" style="display: none;">
+        <div class="title-section">
+          <h1>Daily Service Reports</h1>
+        </div>
+        <div class="info-section">
+          <div class="info-item">Admin View</div>
+        </div>
+      </div>
+      <div class="print-date" style="margin-top: 4px; margin-bottom: 8px; text-align: center; font-size: 11px; color: #0e1111;"> <span id="printDate"></span></div>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th>Date</th>
+            <th>Engineer</th>
+            <th>Project Code</th>
+            <th>Project Name</th>
+            <th>On-site</th>
+            <th>Overtime</th>
+            <th class="no-print">Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="8" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+      <div id="printFooter" class="print-footer" style="display: none;">
+        dot[X].solutions - Daily Service Report System
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-brand-header">
+        <div>
+          <p class="modal-brand-title">dot[x].solutions</p>
+          <span class="modal-brand-meta">Daily Service Report</span>
+        </div>
+      </div>
+      <div class="modal-header">
+        <div id="mTitle" style="font-weight:700">Report</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="modalPrintBtn" class="print-btn-modal" onclick="printReportToPDF(null)" title="Print to PDF" style="display:none;">📄</button>
+          <button id="closeModal" class="secondary">Close</button>
+        </div>
+      </div>
+      <div id="mBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Logout confirmation modal -->
+  <div id="logoutOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+    <div class="modal-dialog">
+      <p id="logoutTitle">Are you sure you want to logout?</p>
+      <div class="modal-actions">
+        <button type="button" class="yes-btn" onclick="confirmLogout()">YES</button>
+        <button type="button" class="no-btn" onclick="cancelLogout()">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete report confirmation modal -->
+  <div id="deleteReportOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteReportTitle">
+    <div class="modal-dialog">
+      <p id="deleteReportTitle" style="color: #ef4444; font-weight: 700;">Delete Report?</p>
+      <p style="margin: 8px 0 16px; color: #64748b;">This action cannot be undone. The report will be permanently deleted from the database.</p>
+      <div class="modal-actions">
+        <button type="button" class="confirm-btn" onclick="executeDeleteReport()">YES, DELETE</button>
+        <button type="button" class="cancel-btn" onclick="cancelDeleteReport()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="success-modal-overlay" role="dialog" aria-modal="true">
+    <div class="success-modal-content">
+      <div class="success-icon">✓</div>
+      <h3 id="successTitle" class="success-title">Success!</h3>
+      <p id="successMessage" class="success-message">Operation completed successfully.</p>
+      <button type="button" class="success-btn" onclick="closeSuccessModal()">OK</button>
+    </div>
+  </div>
+
+  <!-- Projects List Modal -->
+  <div id="projectsModal" class="projects-modal-overlay" role="dialog" aria-modal="true">
+    <div class="projects-modal-dialog">
+      <div class="projects-modal-header">
+        <h2>Project List</h2>
+        <button class="projects-modal-close" onclick="closeProjectsModal()" aria-label="Close">×</button>
+      </div>
+      <div class="projects-modal-body">
+        <div id="projectsListContainer">
+          <div class="muted">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Project Modal -->
+  <div id="addProjectModal" class="project-form-modal" role="dialog" aria-modal="true">
+    <div class="project-form-dialog">
+      <div class="project-form-header">
+        <h2 id="projectModalTitle">PROJECT DETAILS</h2>
+        <button type="button" class="cancel-btn" onclick="closeAddProjectModal()" style="padding: 8px 16px; font-size: 12px;">CLOSE</button>
+      </div>
+      <div class="project-form-body">
+        <form id="projectForm" onsubmit="event.preventDefault(); saveProject();">
+          <fieldset style="border: 2px solid #0e1111; border-radius: 0; padding: 20px; margin-bottom: 20px; background: #ffffff;">
+            <legend style="font-weight: 800; color: #0e1111; padding: 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; background: #ffffff; border: 2px solid #0e1111;">Project Information</legend>
+            <div style="display: grid; gap: 16px;">
+              <div class="form-group">
+                <label for="projectCode">Project Code:</label>
+                <input type="text" id="projectCode" required>
+              </div>
+              <div class="form-group">
+                <label for="startDate">PO/ Start Date:</label>
+                <input type="text" id="startDate" placeholder="MM/DD/YYYY" required>
+              </div>
+              <div class="form-group">
+                <label for="clientName">Client Name:</label>
+                <input type="text" id="clientName" required>
+              </div>
+              <div class="form-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" required>
+              </div>
+              <div class="form-group">
+                <label for="industry">Industry:</label>
+                <input type="text" id="industry" required>
+              </div>
+              <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" required>
+              </div>
+              <div class="form-group">
+                <label for="pic">PIC:</label>
+                <input type="text" id="pic" required>
+              </div>
+            </div>
+          </fieldset>
+          <div class="project-form-actions">
+            <button type="submit" class="save-btn">SAVE</button>
+            <button type="button" class="cancel-btn" onclick="closeAddProjectModal()">CANCEL</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Draft Notification Modal -->
+  <div id="draftModal" class="draft-modal-overlay" role="dialog" aria-modal="true">
+    <div class="draft-modal-content">
+      <div class="draft-modal-icon">📝</div>
+      <h3 class="draft-modal-title">Unsaved Draft Found</h3>
+      <p class="draft-modal-message">You have an unfinished project form. Would you like to continue editing it or start fresh?</p>
+      <div class="draft-modal-actions">
+        <button type="button" class="draft-btn-primary" onclick="useDraftData()">Continue Editing</button>
+        <button type="button" class="draft-btn-secondary" onclick="discardDraft()">Start Fresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Project Modal -->
+  <div id="deleteProjectModal" class="delete-project-modal" role="dialog" aria-modal="true">
+    <div class="delete-project-dialog">
+      <p class="delete-project-title">Delete Project?</p>
+      <p id="deleteProjectText" class="delete-project-text">Are you sure you want to delete this project?</p>
+      <div class="delete-project-actions">
+        <button type="button" class="delete-project-confirm" onclick="confirmDeleteProject()">YES</button>
+        <button type="button" class="delete-project-cancel" onclick="cancelDeleteProject()">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Success Modal -->
+  <div id="projectSuccessModal" class="success-modal-overlay" role="dialog" aria-modal="true">
+    <div class="success-modal-content">
+      <div class="success-icon">✓</div>
+      <h3 id="projectSuccessTitle" class="success-title">Success!</h3>
+      <p id="projectSuccessMessage" class="success-message">Operation completed successfully.</p>
+      <button type="button" class="success-btn" onclick="closeProjectSuccessModal()">OK</button>
+    </div>
+  </div>
+</body>
+</html>
+
+
