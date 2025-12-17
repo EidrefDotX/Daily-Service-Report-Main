@@ -1,0 +1,83 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.json",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/login.html"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/reports/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/reports",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/projectdefs/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/projectdefs",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/users/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/users",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/health",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/export/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.js)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.json)",
+      "dest": "/$1"
+    }
+  ],
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11"
+    }
+  }
+}
