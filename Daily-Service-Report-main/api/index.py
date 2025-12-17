@@ -10,8 +10,5 @@ if BASE_DIR not in sys.path:
 from app import create_app
 
 # Vercel requires the Flask app to be named 'app'
+# The @vercel/python runtime automatically uses this WSGI app
 app = create_app()
-
-# Handler for Vercel serverless
-def handler(request):
-    return app(request.environ, request.start_response)
