@@ -21,46 +21,21 @@
       "use": "@vercel/static"
     }
   ],
+  "rewrites": [
+    { "source": "/auth/:path*", "destination": "/api/index.py" },
+    { "source": "/reports/:path*", "destination": "/api/index.py" },
+    { "source": "/reports", "destination": "/api/index.py" },
+    { "source": "/projectdefs/:path*", "destination": "/api/index.py" },
+    { "source": "/projectdefs", "destination": "/api/index.py" },
+    { "source": "/users/:path*", "destination": "/api/index.py" },
+    { "source": "/users", "destination": "/api/index.py" },
+    { "source": "/health", "destination": "/api/index.py" },
+    { "source": "/export/:path*", "destination": "/api/index.py" }
+  ],
   "routes": [
     {
       "src": "/",
       "dest": "/login.html"
-    },
-    {
-      "src": "/auth/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/reports/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/reports",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/projectdefs/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/projectdefs",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/users/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/users",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/health",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/export/(.*)",
-      "dest": "/api/index.py"
     },
     {
       "src": "/(.*\\.html)",
