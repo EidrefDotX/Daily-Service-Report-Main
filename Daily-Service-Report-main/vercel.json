@@ -1,58 +1,15 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "*.json",
-      "use": "@vercel/static"
-    }
-  ],
-  "rewrites": [
-    { "source": "/auth/:path*", "destination": "/api/index.py" },
-    { "source": "/reports/:path*", "destination": "/api/index.py" },
-    { "source": "/reports", "destination": "/api/index.py" },
-    { "source": "/projectdefs/:path*", "destination": "/api/index.py" },
-    { "source": "/projectdefs", "destination": "/api/index.py" },
-    { "source": "/users/:path*", "destination": "/api/index.py" },
-    { "source": "/users", "destination": "/api/index.py" },
-    { "source": "/health", "destination": "/api/index.py" },
-    { "source": "/export/:path*", "destination": "/api/index.py" }
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "*.js", "use": "@vercel/static" },
+    { "src": "manifest.json", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/(.*\\.html)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.js)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.json)",
-      "dest": "/$1"
-    }
-  ],
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11"
-    }
-  }
+    { "src": "^/$", "dest": "/login.html" },
+    { "src": "^/auth/(.*)", "dest": "/api/index.py" },
+    { "src": "^/reports$", "dest": "/api/index.py" },
+    ... (API routes)
+  ]
 }
