@@ -7,8 +7,15 @@
     { "src": "manifest.json", "use": "@vercel/static" }
   ],
   "routes": [
-    { "handle": "filesystem" },
     { "src": "^/$", "dest": "/login.html" },
+    { "src": "^/login\\.html$", "dest": "/login.html" },
+    { "src": "^/admin\\.html$", "dest": "/admin.html" },
+    { "src": "^/DSR\\.html$", "dest": "/DSR.html" },
+    { "src": "^/projects\\.html$", "dest": "/projects.html" },
+    { "src": "^/auth\\.js$", "dest": "/auth.js" },
+    { "src": "^/sw\\.js$", "dest": "/sw.js" },
+    { "src": "^/manifest\\.json$", "dest": "/manifest.json" },
+    { "src": "^/api/index\\.py$", "dest": "/api/index.py" },
     { "src": "/(.*)", "dest": "/api/index.py" }
   ]
 }
